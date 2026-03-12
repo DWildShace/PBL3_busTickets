@@ -31,13 +31,11 @@ namespace Pbl3
             dataSourceBuilder.MapEnum<TripStatus>();
             dataSourceBuilder.MapEnum<SeatType>();
             dataSourceBuilder.MapEnum<StationType>();
-            dataSourceBuilder.MapEnum<CalendarExceptionType>();
             dataSourceBuilder.MapEnum<BookingStatus>();
             dataSourceBuilder.MapEnum<TicketStatus>();
             dataSourceBuilder.MapEnum<SeatHoldStatus>();
             dataSourceBuilder.MapEnum<PaymentProvider>();
             dataSourceBuilder.MapEnum<PaymentIntentStatus>();
-            dataSourceBuilder.MapEnum<PaymentChargeStatus>();
             dataSourceBuilder.MapEnum<RefundStatus>();
             dataSourceBuilder.MapEnum<NotificationType>();
             dataSourceBuilder.MapEnum<NotificationStatus>();
@@ -59,7 +57,14 @@ namespace Pbl3
 
             app.MapControllers();
 
+            // Run migrations
             await app.InitializeDatabaseAsync();
+
+            // Seed data only if --seed argument is provided
+            if (args.Contains("--seed"))
+            {
+                await app.SeedDatabaseAsync();
+            }
 
             app.Run();
         }

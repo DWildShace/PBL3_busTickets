@@ -12,7 +12,7 @@ using Pbl3.Data;
 namespace pbl3_server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260225044255_InitialCreate")]
+    [Migration("20260311150608_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -24,10 +24,8 @@ namespace pbl3_server.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "booking_status", new[] { "pending", "paid", "cancelled", "refunded" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "calendar_exception_type", new[] { "added", "removed" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "notification_status", new[] { "sent", "failed" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "notification_type", new[] { "email", "sms", "push" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "payment_charge_status", new[] { "captured", "failed" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "payment_intent_status", new[] { "created", "succeeded", "failed" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "payment_provider", new[] { "momo", "stripe", "cash" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "refund_status", new[] { "pending", "processed" });
@@ -38,37 +36,6 @@ namespace pbl3_server.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "trip_status", new[] { "scheduled", "running", "completed", "cancelled" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "user_role", new[] { "passenger", "bus_admin", "sys_admin" });
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("Pbl3.Models.AuditLog", b =>
-                {
-                    b.Property<Guid>("LogID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Action")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("EntityID")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("EntityName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("Timestamp")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("UserID")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("LogID");
-
-                    b.HasIndex("UserID");
-
-                    b.ToTable("AuditLogs");
-                });
 
             modelBuilder.Entity("Pbl3.Models.Booking", b =>
                 {
@@ -209,9 +176,6 @@ namespace pbl3_server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("BusCompanyCompanyID")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("CompanyID")
                         .HasColumnType("uuid");
 
@@ -230,7 +194,7 @@ namespace pbl3_server.Migrations
 
                     b.HasKey("RouteID");
 
-                    b.HasIndex("BusCompanyCompanyID");
+                    b.HasIndex("CompanyID");
 
                     b.ToTable("BusRoutes");
                 });
@@ -287,73 +251,6 @@ namespace pbl3_server.Migrations
                     b.HasKey("BusTypeID");
 
                     b.ToTable("BusTypes");
-                });
-
-            modelBuilder.Entity("Pbl3.Models.Calendar", b =>
-                {
-                    b.Property<Guid>("CalendarID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateOnly>("EndDate")
-                        .HasColumnType("date");
-
-                    b.Property<bool>("Fri")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("Mon")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<bool>("Sat")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateOnly>("StartDate")
-                        .HasColumnType("date");
-
-                    b.Property<bool>("Sun")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("Thu")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("Tue")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("Wed")
-                        .HasColumnType("boolean");
-
-                    b.HasKey("CalendarID");
-
-                    b.ToTable("Calendars");
-                });
-
-            modelBuilder.Entity("Pbl3.Models.CalendarException", b =>
-                {
-                    b.Property<Guid>("ExceptionID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("CalendarID")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateOnly>("Date")
-                        .HasColumnType("date");
-
-                    b.Property<string>("Reason")
-                        .HasColumnType("text");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
-
-                    b.HasKey("ExceptionID");
-
-                    b.HasIndex("CalendarID");
-
-                    b.ToTable("CalendarExceptions");
                 });
 
             modelBuilder.Entity("Pbl3.Models.Notification", b =>
@@ -416,38 +313,6 @@ namespace pbl3_server.Migrations
                     b.ToTable("Passengers");
                 });
 
-            modelBuilder.Entity("Pbl3.Models.PaymentCharge", b =>
-                {
-                    b.Property<Guid>("ChargeID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("numeric");
-
-                    b.Property<DateTime>("CapturedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("IntentID")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("PaymentIntentIntentID")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("ProviderTxnID")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.HasKey("ChargeID");
-
-                    b.HasIndex("PaymentIntentIntentID");
-
-                    b.ToTable("PaymentCharges");
-                });
-
             modelBuilder.Entity("Pbl3.Models.PaymentIntent", b =>
                 {
                     b.Property<Guid>("IntentID")
@@ -480,24 +345,6 @@ namespace pbl3_server.Migrations
                     b.ToTable("PaymentIntents");
                 });
 
-            modelBuilder.Entity("Pbl3.Models.Permission", b =>
-                {
-                    b.Property<Guid>("PermissionID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("text");
-
-                    b.HasKey("PermissionID");
-
-                    b.ToTable("Permissions");
-                });
-
             modelBuilder.Entity("Pbl3.Models.Refund", b =>
                 {
                     b.Property<Guid>("RefundID")
@@ -507,13 +354,10 @@ namespace pbl3_server.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("numeric");
 
-                    b.Property<Guid>("ChargeID")
-                        .HasColumnType("uuid");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid?>("PaymentChargeChargeID")
+                    b.Property<Guid>("IntentID")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Reason")
@@ -524,7 +368,7 @@ namespace pbl3_server.Migrations
 
                     b.HasKey("RefundID");
 
-                    b.HasIndex("PaymentChargeChargeID");
+                    b.HasIndex("IntentID");
 
                     b.ToTable("Refunds");
                 });
@@ -569,21 +413,6 @@ namespace pbl3_server.Migrations
                     b.HasKey("RoleID");
 
                     b.ToTable("Roles");
-                });
-
-            modelBuilder.Entity("Pbl3.Models.RolePermission", b =>
-                {
-                    b.Property<Guid>("RoleID")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("PermissionID")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("RoleID", "PermissionID");
-
-                    b.HasIndex("PermissionID");
-
-                    b.ToTable("RolePermissions");
                 });
 
             modelBuilder.Entity("Pbl3.Models.SeatHold", b =>
@@ -683,36 +512,6 @@ namespace pbl3_server.Migrations
                     b.ToTable("Stations");
                 });
 
-            modelBuilder.Entity("Pbl3.Models.StopTime", b =>
-                {
-                    b.Property<Guid>("StopTimeID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("ArrivalTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("DepartureTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("StationID")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("StopSequence")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("TripID")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("StopTimeID");
-
-                    b.HasIndex("StationID");
-
-                    b.HasIndex("TripID");
-
-                    b.ToTable("StopTimes");
-                });
-
             modelBuilder.Entity("Pbl3.Models.Ticket", b =>
                 {
                     b.Property<Guid>("TicketID")
@@ -781,14 +580,8 @@ namespace pbl3_server.Migrations
                     b.Property<Guid>("RouteID")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("ScheduleID")
-                        .HasColumnType("uuid");
-
                     b.Property<int>("Status")
                         .HasColumnType("integer");
-
-                    b.Property<Guid?>("TripScheduleScheduleID")
-                        .HasColumnType("uuid");
 
                     b.HasKey("TripID");
 
@@ -798,38 +591,7 @@ namespace pbl3_server.Migrations
 
                     b.HasIndex("RouteID");
 
-                    b.HasIndex("TripScheduleScheduleID");
-
                     b.ToTable("Trips");
-                });
-
-            modelBuilder.Entity("Pbl3.Models.TripSchedule", b =>
-                {
-                    b.Property<Guid>("ScheduleID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("BusTypeID")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("CalendarID")
-                        .HasColumnType("uuid");
-
-                    b.Property<TimeOnly>("DepartureTime")
-                        .HasColumnType("time without time zone");
-
-                    b.Property<Guid>("RouteID")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("ScheduleID");
-
-                    b.HasIndex("BusTypeID");
-
-                    b.HasIndex("CalendarID");
-
-                    b.HasIndex("RouteID");
-
-                    b.ToTable("TripSchedules");
                 });
 
             modelBuilder.Entity("Pbl3.Models.User", b =>
@@ -867,17 +629,6 @@ namespace pbl3_server.Migrations
                     b.HasIndex("RoleID");
 
                     b.ToTable("Users");
-                });
-
-            modelBuilder.Entity("Pbl3.Models.AuditLog", b =>
-                {
-                    b.HasOne("Pbl3.Models.User", "User")
-                        .WithMany("AuditLogs")
-                        .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Pbl3.Models.Booking", b =>
@@ -939,7 +690,9 @@ namespace pbl3_server.Migrations
                 {
                     b.HasOne("Pbl3.Models.BusCompany", "BusCompany")
                         .WithMany("Routes")
-                        .HasForeignKey("BusCompanyCompanyID");
+                        .HasForeignKey("CompanyID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("BusCompany");
                 });
@@ -961,17 +714,6 @@ namespace pbl3_server.Migrations
                     b.Navigation("Route");
 
                     b.Navigation("Station");
-                });
-
-            modelBuilder.Entity("Pbl3.Models.CalendarException", b =>
-                {
-                    b.HasOne("Pbl3.Models.Calendar", "Calendar")
-                        .WithMany("CalendarExceptions")
-                        .HasForeignKey("CalendarID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Calendar");
                 });
 
             modelBuilder.Entity("Pbl3.Models.Notification", b =>
@@ -1002,15 +744,6 @@ namespace pbl3_server.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Pbl3.Models.PaymentCharge", b =>
-                {
-                    b.HasOne("Pbl3.Models.PaymentIntent", "PaymentIntent")
-                        .WithMany("PaymentCharges")
-                        .HasForeignKey("PaymentIntentIntentID");
-
-                    b.Navigation("PaymentIntent");
-                });
-
             modelBuilder.Entity("Pbl3.Models.PaymentIntent", b =>
                 {
                     b.HasOne("Pbl3.Models.Booking", "Booking")
@@ -1024,11 +757,13 @@ namespace pbl3_server.Migrations
 
             modelBuilder.Entity("Pbl3.Models.Refund", b =>
                 {
-                    b.HasOne("Pbl3.Models.PaymentCharge", "PaymentCharge")
+                    b.HasOne("Pbl3.Models.PaymentIntent", "PaymentIntent")
                         .WithMany("Refunds")
-                        .HasForeignKey("PaymentChargeChargeID");
+                        .HasForeignKey("IntentID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Navigation("PaymentCharge");
+                    b.Navigation("PaymentIntent");
                 });
 
             modelBuilder.Entity("Pbl3.Models.Review", b =>
@@ -1048,25 +783,6 @@ namespace pbl3_server.Migrations
                     b.Navigation("Booking");
 
                     b.Navigation("Trip");
-                });
-
-            modelBuilder.Entity("Pbl3.Models.RolePermission", b =>
-                {
-                    b.HasOne("Pbl3.Models.Permission", "Permission")
-                        .WithMany("RolePermissions")
-                        .HasForeignKey("PermissionID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Pbl3.Models.Role", "Role")
-                        .WithMany("RolePermissions")
-                        .HasForeignKey("RoleID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Permission");
-
-                    b.Navigation("Role");
                 });
 
             modelBuilder.Entity("Pbl3.Models.SeatHold", b =>
@@ -1103,25 +819,6 @@ namespace pbl3_server.Migrations
                         .IsRequired();
 
                     b.Navigation("BusType");
-                });
-
-            modelBuilder.Entity("Pbl3.Models.StopTime", b =>
-                {
-                    b.HasOne("Pbl3.Models.Station", "Station")
-                        .WithMany("StopTimes")
-                        .HasForeignKey("StationID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Pbl3.Models.Trip", "Trip")
-                        .WithMany("StopTimes")
-                        .HasForeignKey("TripID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Station");
-
-                    b.Navigation("Trip");
                 });
 
             modelBuilder.Entity("Pbl3.Models.Ticket", b =>
@@ -1177,42 +874,9 @@ namespace pbl3_server.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Pbl3.Models.TripSchedule", "TripSchedule")
-                        .WithMany("Trips")
-                        .HasForeignKey("TripScheduleScheduleID");
-
                     b.Navigation("Bus");
 
                     b.Navigation("BusType");
-
-                    b.Navigation("Route");
-
-                    b.Navigation("TripSchedule");
-                });
-
-            modelBuilder.Entity("Pbl3.Models.TripSchedule", b =>
-                {
-                    b.HasOne("Pbl3.Models.BusType", "BusType")
-                        .WithMany("TripSchedules")
-                        .HasForeignKey("BusTypeID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Pbl3.Models.Calendar", "Calendar")
-                        .WithMany("TripSchedules")
-                        .HasForeignKey("CalendarID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Pbl3.Models.BusRoute", "Route")
-                        .WithMany("TripSchedules")
-                        .HasForeignKey("RouteID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("BusType");
-
-                    b.Navigation("Calendar");
 
                     b.Navigation("Route");
                 });
@@ -1259,8 +923,6 @@ namespace pbl3_server.Migrations
                 {
                     b.Navigation("BusRouteStops");
 
-                    b.Navigation("TripSchedules");
-
                     b.Navigation("Trips");
                 });
 
@@ -1270,16 +932,7 @@ namespace pbl3_server.Migrations
 
                     b.Navigation("SeatLayouts");
 
-                    b.Navigation("TripSchedules");
-
                     b.Navigation("Trips");
-                });
-
-            modelBuilder.Entity("Pbl3.Models.Calendar", b =>
-                {
-                    b.Navigation("CalendarExceptions");
-
-                    b.Navigation("TripSchedules");
                 });
 
             modelBuilder.Entity("Pbl3.Models.Passenger", b =>
@@ -1287,33 +940,19 @@ namespace pbl3_server.Migrations
                     b.Navigation("Tickets");
                 });
 
-            modelBuilder.Entity("Pbl3.Models.PaymentCharge", b =>
+            modelBuilder.Entity("Pbl3.Models.PaymentIntent", b =>
                 {
                     b.Navigation("Refunds");
                 });
 
-            modelBuilder.Entity("Pbl3.Models.PaymentIntent", b =>
-                {
-                    b.Navigation("PaymentCharges");
-                });
-
-            modelBuilder.Entity("Pbl3.Models.Permission", b =>
-                {
-                    b.Navigation("RolePermissions");
-                });
-
             modelBuilder.Entity("Pbl3.Models.Role", b =>
                 {
-                    b.Navigation("RolePermissions");
-
                     b.Navigation("Users");
                 });
 
             modelBuilder.Entity("Pbl3.Models.Station", b =>
                 {
                     b.Navigation("BusRouteStops");
-
-                    b.Navigation("StopTimes");
                 });
 
             modelBuilder.Entity("Pbl3.Models.Trip", b =>
@@ -1322,20 +961,11 @@ namespace pbl3_server.Migrations
 
                     b.Navigation("SeatHolds");
 
-                    b.Navigation("StopTimes");
-
                     b.Navigation("Tickets");
-                });
-
-            modelBuilder.Entity("Pbl3.Models.TripSchedule", b =>
-                {
-                    b.Navigation("Trips");
                 });
 
             modelBuilder.Entity("Pbl3.Models.User", b =>
                 {
-                    b.Navigation("AuditLogs");
-
                     b.Navigation("Bookings");
 
                     b.Navigation("BusCompanyAdmins");

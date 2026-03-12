@@ -15,6 +15,5 @@ namespace Pbl3.Models
         public double? Longitude { get; set; }
 
         public ICollection<BusRouteStop> BusRouteStops { get; set; } = new List<BusRouteStop>();
-        public ICollection<StopTime> StopTimes { get; set; } = new List<StopTime>();
     }
 }

@@ -12,7 +12,6 @@ namespace Pbl3.Models
 
         public ICollection<SeatLayout> SeatLayouts { get; set; } = new List<SeatLayout>();
         public ICollection<Bus> Buses { get; set; } = new List<Bus>();
-        public ICollection<TripSchedule> TripSchedules { get; set; } = new List<TripSchedule>();
         public ICollection<Trip> Trips { get; set; } = new List<Trip>();
     }
 }

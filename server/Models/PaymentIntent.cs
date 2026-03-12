@@ -16,6 +16,6 @@ namespace Pbl3.Models
         public PaymentIntentStatus Status { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public ICollection<PaymentCharge> PaymentCharges { get; set; } = new List<PaymentCharge>();
+        public ICollection<Refund> Refunds { get; set; } = new List<Refund>();
     }
 }

@@ -32,12 +32,6 @@ namespace Pbl3.Enums
         PickUpPoint
     }
 
-    public enum CalendarExceptionType
-    {
-        Added,
-        Removed
-    }
-
     public enum BookingStatus
     {
         Pending,
@@ -74,11 +68,6 @@ namespace Pbl3.Enums
         Failed
     }
 
-    public enum PaymentChargeStatus
-    {
-        Captured,
-        Failed
-    }
 
     public enum RefundStatus
     {

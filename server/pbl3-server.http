@@ -1,6 +1,300 @@
 @pbl3_server_HostAddress = http://localhost:5026
 
+### Test API is working
 GET {{pbl3_server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
+
+### Get all users
+GET {{pbl3_server_HostAddress}}/api/users
+Accept: application/json
+
+###
+
+### Variables for sample data (replace these with actual IDs from your database after seeding)
+@adminUserId = replace-with-actual-admin-id
+@passengerId = replace-with-actual-passenger-id
+@companyId = replace-with-actual-company-id
+@busId = replace-with-actual-bus-id
+@routeId = replace-with-actual-route-id
+@tripId = replace-with-actual-trip-id
+@bookingId = replace-with-actual-booking-id
+
+###
+
+### ============================================
+### USER MANAGEMENT ENDPOINTS (Example)
+### ============================================
+
+### Get user by ID
+GET {{pbl3_server_HostAddress}}/api/users/{{passengerId}}
+Accept: application/json
+
+###
+
+### Create new user
+POST {{pbl3_server_HostAddress}}/api/users
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "email": "testuser@gmail.com",
+  "password": "Test123456",
+  "phoneNumber": "0909123456",
+  "roleId": "{{passengerRoleId}}"
+}
+
+###
+
+### Update user
+PUT {{pbl3_server_HostAddress}}/api/users/{{passengerId}}
+Content-Type: application/json
+
+{
+  "username": "updateduser",
+  "email": "updateduser@gmail.com",
+  "phoneNumber": "0909999999"
+}
+
+###
+
+### ============================================
+### BUS COMPANY ENDPOINTS (Example)
+### ============================================
+
+### Get all bus companies
+GET {{pbl3_server_HostAddress}}/api/buscompanies
+Accept: application/json
+
+###
+
+### Get company by ID
+GET {{pbl3_server_HostAddress}}/api/buscompanies/{{companyId}}
+Accept: application/json
+
+###
+
+### Create new bus company
+POST {{pbl3_server_HostAddress}}/api/buscompanies
+Content-Type: application/json
+
+{
+  "name": "Xe Tân Phú",
+  "licenseNumber": "VN-TP-004",
+  "hotline": "0283123456",
+  "isApproved": false
+}
+
+###
+
+### ============================================
+### ROUTE ENDPOINTS (Example)
+### ============================================
+
+### Get all routes
+GET {{pbl3_server_HostAddress}}/api/routes
+Accept: application/json
+
+###
+
+### Search routes by origin and destination
+GET {{pbl3_server_HostAddress}}/api/routes/search?origin=Hồ Chí Minh&destination=Đà Lạt
+Accept: application/json
+
+###
+
+### Get route details
+GET {{pbl3_server_HostAddress}}/api/routes/{{routeId}}
+Accept: application/json
+
+###
+
+### ============================================
+### TRIP ENDPOINTS (Example)
+### ============================================
+
+### Get all trips
+GET {{pbl3_server_HostAddress}}/api/trips
+Accept: application/json
+
+###
+
+### Search trips by date and route
+GET {{pbl3_server_HostAddress}}/api/trips/search?routeId={{routeId}}&date=2026-03-06
+Accept: application/json
+
+###
+
+### Get available seats for a trip
+GET {{pbl3_server_HostAddress}}/api/trips/{{tripId}}/seats
+Accept: application/json
+
+###
+
+### Get trip details
+GET {{pbl3_server_HostAddress}}/api/trips/{{tripId}}
+Accept: application/json
+
+###
+
+### ============================================
+### BOOKING ENDPOINTS (Example)
+### ============================================
+
+### Create new booking
+POST {{pbl3_server_HostAddress}}/api/bookings
+Content-Type: application/json
+
+{
+  "userId": "{{passengerId}}",
+  "tripId": "{{tripId}}",
+  "contactName": "Lê Văn C",
+  "contactPhone": "0906789012",
+  "contactEmail": "levanc@gmail.com",
+  "seats": ["A1", "A2"],
+  "passengers": [
+    {
+      "fullName": "Lê Văn C",
+      "identityNumber": "079012345678",
+      "phoneNumber": "0906789012"
+    },
+    {
+      "fullName": "Nguyễn Thị D",
+      "identityNumber": "079087654321",
+      "phoneNumber": "0907890123"
+    }
+  ]
+}
+
+###
+
+### Get booking by ID
+GET {{pbl3_server_HostAddress}}/api/bookings/{{bookingId}}
+Accept: application/json
+
+###
+
+### Get user's bookings
+GET {{pbl3_server_HostAddress}}/api/users/{{passengerId}}/bookings
+Accept: application/json
+
+###
+
+### Cancel booking
+PUT {{pbl3_server_HostAddress}}/api/bookings/{{bookingId}}/cancel
+Content-Type: application/json
+
+###
+
+### ============================================
+### PAYMENT ENDPOINTS (Example)
+### ============================================
+
+### Create payment intent
+POST {{pbl3_server_HostAddress}}/api/payments/intent
+Content-Type: application/json
+
+{
+  "bookingId": "{{bookingId}}",
+  "paymentProvider": "Momo",
+  "amount": 250000,
+  "returnUrl": "http://localhost:3000/payment/success",
+  "cancelUrl": "http://localhost:3000/payment/cancel"
+}
+
+###
+
+### Confirm payment
+POST {{pbl3_server_HostAddress}}/api/payments/confirm
+Content-Type: application/json
+
+{
+  "paymentIntentId": "replace-with-payment-intent-id",
+  "transactionId": "MOMO123456789"
+}
+
+###
+
+### ============================================
+### STATION ENDPOINTS (Example)
+### ============================================
+
+### Get all stations
+GET {{pbl3_server_HostAddress}}/api/stations
+Accept: application/json
+
+###
+
+### Search stations by province
+GET {{pbl3_server_HostAddress}}/api/stations/search?province=Hồ Chí Minh
+Accept: application/json
+
+###
+
+### ============================================
+### BUS ENDPOINTS (Example)
+### ============================================
+
+### Get all buses
+GET {{pbl3_server_HostAddress}}/api/buses
+Accept: application/json
+
+###
+
+### Get buses by company
+GET {{pbl3_server_HostAddress}}/api/buscompanies/{{companyId}}/buses
+Accept: application/json
+
+###
+
+### Get bus details
+GET {{pbl3_server_HostAddress}}/api/buses/{{busId}}
+Accept: application/json
+
+###
+
+### ============================================
+### REVIEW ENDPOINTS (Example)
+### ============================================
+
+### Create review
+POST {{pbl3_server_HostAddress}}/api/reviews
+Content-Type: application/json
+
+{
+  "bookingId": "{{bookingId}}",
+  "tripId": "{{tripId}}",
+  "rating": 5,
+  "comment": "Xe sạch sẽ, tài xế lái xe an toàn, giờ giấc đúng hẹn!"
+}
+
+###
+
+### Get reviews for a trip
+GET {{pbl3_server_HostAddress}}/api/trips/{{tripId}}/reviews
+Accept: application/json
+
+###
+
+### ============================================
+### ADMIN ENDPOINTS (Example)
+### ============================================
+
+### Approve bus company (admin only)
+PUT {{pbl3_server_HostAddress}}/api/admin/buscompanies/{{companyId}}/approve
+Content-Type: application/json
+
+###
+
+### Get all bookings (admin only)
+GET {{pbl3_server_HostAddress}}/api/admin/bookings
+Accept: application/json
+
+###
+
+### Get audit logs (admin only)
+GET {{pbl3_server_HostAddress}}/api/admin/auditlogs
 Accept: application/json
 
 ###

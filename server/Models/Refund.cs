@@ -7,8 +7,8 @@ namespace Pbl3.Models
     {
         [Key]
         public Guid RefundID { get; set; } = Guid.NewGuid();
-        public Guid ChargeID { get; set; }
-        public PaymentCharge? PaymentCharge { get; set; }
+        public Guid IntentID { get; set; }
+        public PaymentIntent? PaymentIntent { get; set; }
 
         public decimal Amount { get; set; }
         public string? Reason { get; set; }

@@ -19,8 +19,7 @@ namespace Pbl3.Models
         // Navigation properties
         public ICollection<BusCompanyAdmin> BusCompanyAdmins { get; set; } = new List<BusCompanyAdmin>();
         public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
-        public ICollection<AuditLog> AuditLogs { get; set; } = new List<AuditLog>();
-         public ICollection<Passenger> Passengers { get; set; } = new List<Passenger>();
+        public ICollection<Passenger> Passengers { get; set; } = new List<Passenger>();
         public ICollection<SeatHold> SeatHolds { get; set; } = new List<SeatHold>();
         public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
     }

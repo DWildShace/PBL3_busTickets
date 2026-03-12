@@ -13,10 +13,8 @@ namespace pbl3_server.Migrations
         {
             migrationBuilder.AlterDatabase()
                 .Annotation("Npgsql:Enum:booking_status", "pending,paid,cancelled,refunded")
-                .Annotation("Npgsql:Enum:calendar_exception_type", "added,removed")
                 .Annotation("Npgsql:Enum:notification_status", "sent,failed")
                 .Annotation("Npgsql:Enum:notification_type", "email,sms,push")
-                .Annotation("Npgsql:Enum:payment_charge_status", "captured,failed")
                 .Annotation("Npgsql:Enum:payment_intent_status", "created,succeeded,failed")
                 .Annotation("Npgsql:Enum:payment_provider", "momo,stripe,cash")
                 .Annotation("Npgsql:Enum:refund_status", "pending,processed")
@@ -57,40 +55,6 @@ namespace pbl3_server.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Calendars",
-                columns: table => new
-                {
-                    CalendarID = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    StartDate = table.Column<DateOnly>(type: "date", nullable: false),
-                    EndDate = table.Column<DateOnly>(type: "date", nullable: false),
-                    Mon = table.Column<bool>(type: "boolean", nullable: false),
-                    Tue = table.Column<bool>(type: "boolean", nullable: false),
-                    Wed = table.Column<bool>(type: "boolean", nullable: false),
-                    Thu = table.Column<bool>(type: "boolean", nullable: false),
-                    Fri = table.Column<bool>(type: "boolean", nullable: false),
-                    Sat = table.Column<bool>(type: "boolean", nullable: false),
-                    Sun = table.Column<bool>(type: "boolean", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Calendars", x => x.CalendarID);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Permissions",
-                columns: table => new
-                {
-                    PermissionID = table.Column<Guid>(type: "uuid", nullable: false),
-                    Code = table.Column<string>(type: "text", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Permissions", x => x.PermissionID);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Roles",
                 columns: table => new
                 {
@@ -125,7 +89,6 @@ namespace pbl3_server.Migrations
                 {
                     RouteID = table.Column<Guid>(type: "uuid", nullable: false),
                     CompanyID = table.Column<Guid>(type: "uuid", nullable: false),
-                    BusCompanyCompanyID = table.Column<Guid>(type: "uuid", nullable: true),
                     RouteName = table.Column<string>(type: "text", nullable: false),
                     DistanceEstimate = table.Column<decimal>(type: "numeric", nullable: false),
                     DurationEstimate = table.Column<decimal>(type: "numeric", nullable: false),
@@ -135,10 +98,11 @@ namespace pbl3_server.Migrations
                 {
                     table.PrimaryKey("PK_BusRoutes", x => x.RouteID);
                     table.ForeignKey(
-                        name: "FK_BusRoutes_BusCompanies_BusCompanyCompanyID",
-                        column: x => x.BusCompanyCompanyID,
+                        name: "FK_BusRoutes_BusCompanies_CompanyID",
+                        column: x => x.CompanyID,
                         principalTable: "BusCompanies",
-                        principalColumn: "CompanyID");
+                        principalColumn: "CompanyID",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -188,51 +152,6 @@ namespace pbl3_server.Migrations
                         column: x => x.BusTypeID,
                         principalTable: "BusTypes",
                         principalColumn: "BusTypeID",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "CalendarExceptions",
-                columns: table => new
-                {
-                    ExceptionID = table.Column<Guid>(type: "uuid", nullable: false),
-                    CalendarID = table.Column<Guid>(type: "uuid", nullable: false),
-                    Date = table.Column<DateOnly>(type: "date", nullable: false),
-                    Type = table.Column<int>(type: "integer", nullable: false),
-                    Reason = table.Column<string>(type: "text", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_CalendarExceptions", x => x.ExceptionID);
-                    table.ForeignKey(
-                        name: "FK_CalendarExceptions_Calendars_CalendarID",
-                        column: x => x.CalendarID,
-                        principalTable: "Calendars",
-                        principalColumn: "CalendarID",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "RolePermissions",
-                columns: table => new
-                {
-                    RoleID = table.Column<Guid>(type: "uuid", nullable: false),
-                    PermissionID = table.Column<Guid>(type: "uuid", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_RolePermissions", x => new { x.RoleID, x.PermissionID });
-                    table.ForeignKey(
-                        name: "FK_RolePermissions_Permissions_PermissionID",
-                        column: x => x.PermissionID,
-                        principalTable: "Permissions",
-                        principalColumn: "PermissionID",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_RolePermissions_Roles_RoleID",
-                        column: x => x.RoleID,
-                        principalTable: "Roles",
-                        principalColumn: "RoleID",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -290,39 +209,6 @@ namespace pbl3_server.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "TripSchedules",
-                columns: table => new
-                {
-                    ScheduleID = table.Column<Guid>(type: "uuid", nullable: false),
-                    RouteID = table.Column<Guid>(type: "uuid", nullable: false),
-                    CalendarID = table.Column<Guid>(type: "uuid", nullable: false),
-                    BusTypeID = table.Column<Guid>(type: "uuid", nullable: false),
-                    DepartureTime = table.Column<TimeOnly>(type: "time without time zone", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_TripSchedules", x => x.ScheduleID);
-                    table.ForeignKey(
-                        name: "FK_TripSchedules_BusRoutes_RouteID",
-                        column: x => x.RouteID,
-                        principalTable: "BusRoutes",
-                        principalColumn: "RouteID",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_TripSchedules_BusTypes_BusTypeID",
-                        column: x => x.BusTypeID,
-                        principalTable: "BusTypes",
-                        principalColumn: "BusTypeID",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_TripSchedules_Calendars_CalendarID",
-                        column: x => x.CalendarID,
-                        principalTable: "Calendars",
-                        principalColumn: "CalendarID",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "BusImages",
                 columns: table => new
                 {
@@ -342,25 +228,38 @@ namespace pbl3_server.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "AuditLogs",
+                name: "Trips",
                 columns: table => new
                 {
-                    LogID = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserID = table.Column<Guid>(type: "uuid", nullable: false),
-                    Action = table.Column<string>(type: "text", nullable: false),
-                    EntityName = table.Column<string>(type: "text", nullable: false),
-                    EntityID = table.Column<string>(type: "text", nullable: false),
-                    Timestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    TripID = table.Column<Guid>(type: "uuid", nullable: false),
+                    RouteID = table.Column<Guid>(type: "uuid", nullable: false),
+                    BusID = table.Column<Guid>(type: "uuid", nullable: true),
+                    BusTypeID = table.Column<Guid>(type: "uuid", nullable: false),
+                    DepartureDate = table.Column<DateOnly>(type: "date", nullable: false),
+                    DepartureTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ArrivalTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AuditLogs", x => x.LogID);
+                    table.PrimaryKey("PK_Trips", x => x.TripID);
                     table.ForeignKey(
-                        name: "FK_AuditLogs_Users_UserID",
-                        column: x => x.UserID,
-                        principalTable: "Users",
-                        principalColumn: "UserID",
+                        name: "FK_Trips_BusRoutes_RouteID",
+                        column: x => x.RouteID,
+                        principalTable: "BusRoutes",
+                        principalColumn: "RouteID",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Trips_BusTypes_BusTypeID",
+                        column: x => x.BusTypeID,
+                        principalTable: "BusTypes",
+                        principalColumn: "BusTypeID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Trips_Buses_BusID",
+                        column: x => x.BusID,
+                        principalTable: "Buses",
+                        principalColumn: "BusID");
                 });
 
             migrationBuilder.CreateTable(
@@ -434,45 +333,37 @@ namespace pbl3_server.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Trips",
+                name: "SeatHolds",
                 columns: table => new
                 {
+                    HoldID = table.Column<Guid>(type: "uuid", nullable: false),
                     TripID = table.Column<Guid>(type: "uuid", nullable: false),
-                    ScheduleID = table.Column<Guid>(type: "uuid", nullable: true),
-                    TripScheduleScheduleID = table.Column<Guid>(type: "uuid", nullable: true),
-                    RouteID = table.Column<Guid>(type: "uuid", nullable: false),
-                    BusID = table.Column<Guid>(type: "uuid", nullable: true),
-                    BusTypeID = table.Column<Guid>(type: "uuid", nullable: false),
-                    DepartureDate = table.Column<DateOnly>(type: "date", nullable: false),
-                    DepartureTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    ArrivalTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    SeatLayoutID = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserID = table.Column<Guid>(type: "uuid", nullable: true),
+                    SessionID = table.Column<string>(type: "text", nullable: true),
+                    ExpiresAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Trips", x => x.TripID);
+                    table.PrimaryKey("PK_SeatHolds", x => x.HoldID);
                     table.ForeignKey(
-                        name: "FK_Trips_BusRoutes_RouteID",
-                        column: x => x.RouteID,
-                        principalTable: "BusRoutes",
-                        principalColumn: "RouteID",
+                        name: "FK_SeatHolds_SeatLayouts_SeatLayoutID",
+                        column: x => x.SeatLayoutID,
+                        principalTable: "SeatLayouts",
+                        principalColumn: "LayoutID",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Trips_BusTypes_BusTypeID",
-                        column: x => x.BusTypeID,
-                        principalTable: "BusTypes",
-                        principalColumn: "BusTypeID",
+                        name: "FK_SeatHolds_Trips_TripID",
+                        column: x => x.TripID,
+                        principalTable: "Trips",
+                        principalColumn: "TripID",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Trips_Buses_BusID",
-                        column: x => x.BusID,
-                        principalTable: "Buses",
-                        principalColumn: "BusID");
-                    table.ForeignKey(
-                        name: "FK_Trips_TripSchedules_TripScheduleScheduleID",
-                        column: x => x.TripScheduleScheduleID,
-                        principalTable: "TripSchedules",
-                        principalColumn: "ScheduleID");
+                        name: "FK_SeatHolds_Users_UserID",
+                        column: x => x.UserID,
+                        principalTable: "Users",
+                        principalColumn: "UserID");
                 });
 
             migrationBuilder.CreateTable(
@@ -554,68 +445,6 @@ namespace pbl3_server.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "SeatHolds",
-                columns: table => new
-                {
-                    HoldID = table.Column<Guid>(type: "uuid", nullable: false),
-                    TripID = table.Column<Guid>(type: "uuid", nullable: false),
-                    SeatLayoutID = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserID = table.Column<Guid>(type: "uuid", nullable: true),
-                    SessionID = table.Column<string>(type: "text", nullable: true),
-                    ExpiresAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_SeatHolds", x => x.HoldID);
-                    table.ForeignKey(
-                        name: "FK_SeatHolds_SeatLayouts_SeatLayoutID",
-                        column: x => x.SeatLayoutID,
-                        principalTable: "SeatLayouts",
-                        principalColumn: "LayoutID",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_SeatHolds_Trips_TripID",
-                        column: x => x.TripID,
-                        principalTable: "Trips",
-                        principalColumn: "TripID",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_SeatHolds_Users_UserID",
-                        column: x => x.UserID,
-                        principalTable: "Users",
-                        principalColumn: "UserID");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "StopTimes",
-                columns: table => new
-                {
-                    StopTimeID = table.Column<Guid>(type: "uuid", nullable: false),
-                    TripID = table.Column<Guid>(type: "uuid", nullable: false),
-                    StationID = table.Column<Guid>(type: "uuid", nullable: false),
-                    ArrivalTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    DepartureTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    StopSequence = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_StopTimes", x => x.StopTimeID);
-                    table.ForeignKey(
-                        name: "FK_StopTimes_Stations_StationID",
-                        column: x => x.StationID,
-                        principalTable: "Stations",
-                        principalColumn: "StationID",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_StopTimes_Trips_TripID",
-                        column: x => x.TripID,
-                        principalTable: "Trips",
-                        principalColumn: "TripID",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Tickets",
                 columns: table => new
                 {
@@ -659,34 +488,11 @@ namespace pbl3_server.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "PaymentCharges",
-                columns: table => new
-                {
-                    ChargeID = table.Column<Guid>(type: "uuid", nullable: false),
-                    IntentID = table.Column<Guid>(type: "uuid", nullable: false),
-                    PaymentIntentIntentID = table.Column<Guid>(type: "uuid", nullable: true),
-                    ProviderTxnID = table.Column<string>(type: "text", nullable: false),
-                    Amount = table.Column<decimal>(type: "numeric", nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    CapturedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PaymentCharges", x => x.ChargeID);
-                    table.ForeignKey(
-                        name: "FK_PaymentCharges_PaymentIntents_PaymentIntentIntentID",
-                        column: x => x.PaymentIntentIntentID,
-                        principalTable: "PaymentIntents",
-                        principalColumn: "IntentID");
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Refunds",
                 columns: table => new
                 {
                     RefundID = table.Column<Guid>(type: "uuid", nullable: false),
-                    ChargeID = table.Column<Guid>(type: "uuid", nullable: false),
-                    PaymentChargeChargeID = table.Column<Guid>(type: "uuid", nullable: true),
+                    IntentID = table.Column<Guid>(type: "uuid", nullable: false),
                     Amount = table.Column<decimal>(type: "numeric", nullable: false),
                     Reason = table.Column<string>(type: "text", nullable: true),
                     Status = table.Column<int>(type: "integer", nullable: false),
@@ -696,16 +502,12 @@ namespace pbl3_server.Migrations
                 {
                     table.PrimaryKey("PK_Refunds", x => x.RefundID);
                     table.ForeignKey(
-                        name: "FK_Refunds_PaymentCharges_PaymentChargeChargeID",
-                        column: x => x.PaymentChargeChargeID,
-                        principalTable: "PaymentCharges",
-                        principalColumn: "ChargeID");
+                        name: "FK_Refunds_PaymentIntents_IntentID",
+                        column: x => x.IntentID,
+                        principalTable: "PaymentIntents",
+                        principalColumn: "IntentID",
+                        onDelete: ReferentialAction.Cascade);
                 });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_AuditLogs_UserID",
-                table: "AuditLogs",
-                column: "UserID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Bookings_UserID",
@@ -733,14 +535,9 @@ namespace pbl3_server.Migrations
                 column: "BusID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_BusRoutes_BusCompanyCompanyID",
+                name: "IX_BusRoutes_CompanyID",
                 table: "BusRoutes",
-                column: "BusCompanyCompanyID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CalendarExceptions_CalendarID",
-                table: "CalendarExceptions",
-                column: "CalendarID");
+                column: "CompanyID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Notifications_BookingID",
@@ -758,19 +555,14 @@ namespace pbl3_server.Migrations
                 column: "UserID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PaymentCharges_PaymentIntentIntentID",
-                table: "PaymentCharges",
-                column: "PaymentIntentIntentID");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_PaymentIntents_BookingID",
                 table: "PaymentIntents",
                 column: "BookingID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Refunds_PaymentChargeChargeID",
+                name: "IX_Refunds_IntentID",
                 table: "Refunds",
-                column: "PaymentChargeChargeID");
+                column: "IntentID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Reviews_BookingID",
@@ -781,11 +573,6 @@ namespace pbl3_server.Migrations
                 name: "IX_Reviews_TripID",
                 table: "Reviews",
                 column: "TripID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_RolePermissions_PermissionID",
-                table: "RolePermissions",
-                column: "PermissionID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_RouteStops_RouteID",
@@ -816,16 +603,6 @@ namespace pbl3_server.Migrations
                 name: "IX_SeatLayouts_BusTypeID",
                 table: "SeatLayouts",
                 column: "BusTypeID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_StopTimes_StationID",
-                table: "StopTimes",
-                column: "StationID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_StopTimes_TripID",
-                table: "StopTimes",
-                column: "TripID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Tickets_BookingID",
@@ -863,26 +640,6 @@ namespace pbl3_server.Migrations
                 column: "RouteID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Trips_TripScheduleScheduleID",
-                table: "Trips",
-                column: "TripScheduleScheduleID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_TripSchedules_BusTypeID",
-                table: "TripSchedules",
-                column: "BusTypeID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_TripSchedules_CalendarID",
-                table: "TripSchedules",
-                column: "CalendarID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_TripSchedules_RouteID",
-                table: "TripSchedules",
-                column: "RouteID");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Users_RoleID",
                 table: "Users",
                 column: "RoleID");
@@ -892,16 +649,10 @@ namespace pbl3_server.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "AuditLogs");
-
-            migrationBuilder.DropTable(
                 name: "BusCompanyAdmins");
 
             migrationBuilder.DropTable(
                 name: "BusImages");
-
-            migrationBuilder.DropTable(
-                name: "CalendarExceptions");
 
             migrationBuilder.DropTable(
                 name: "Notifications");
@@ -913,25 +664,16 @@ namespace pbl3_server.Migrations
                 name: "Reviews");
 
             migrationBuilder.DropTable(
-                name: "RolePermissions");
-
-            migrationBuilder.DropTable(
                 name: "RouteStops");
 
             migrationBuilder.DropTable(
                 name: "SeatHolds");
 
             migrationBuilder.DropTable(
-                name: "StopTimes");
-
-            migrationBuilder.DropTable(
                 name: "Tickets");
 
             migrationBuilder.DropTable(
-                name: "PaymentCharges");
-
-            migrationBuilder.DropTable(
-                name: "Permissions");
+                name: "PaymentIntents");
 
             migrationBuilder.DropTable(
                 name: "Stations");
@@ -946,31 +688,22 @@ namespace pbl3_server.Migrations
                 name: "Trips");
 
             migrationBuilder.DropTable(
-                name: "PaymentIntents");
-
-            migrationBuilder.DropTable(
-                name: "Buses");
-
-            migrationBuilder.DropTable(
-                name: "TripSchedules");
-
-            migrationBuilder.DropTable(
                 name: "Bookings");
 
             migrationBuilder.DropTable(
                 name: "BusRoutes");
 
             migrationBuilder.DropTable(
-                name: "BusTypes");
-
-            migrationBuilder.DropTable(
-                name: "Calendars");
+                name: "Buses");
 
             migrationBuilder.DropTable(
                 name: "Users");
 
             migrationBuilder.DropTable(
                 name: "BusCompanies");
+
+            migrationBuilder.DropTable(
+                name: "BusTypes");
 
             migrationBuilder.DropTable(
                 name: "Roles");

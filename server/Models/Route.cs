@@ -15,7 +15,6 @@ namespace Pbl3.Models
         public bool IsActive { get; set; }
 
         public ICollection<BusRouteStop> BusRouteStops { get; set; } = new List<BusRouteStop>();
-        public ICollection<TripSchedule> TripSchedules { get; set; } = new List<TripSchedule>();
         public ICollection<Trip> Trips { get; set; } = new List<Trip>();
     }
 }

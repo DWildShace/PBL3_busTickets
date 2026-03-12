@@ -1,6 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Pbl3.Models;
-using Pbl3.Enums;
 
 namespace Pbl3.Data
 {
@@ -8,73 +6,44 @@ namespace Pbl3.Data
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<DbInitializer> _logger;
+        private readonly IServiceProvider _serviceProvider;
 
-        public DbInitializer(ApplicationDbContext context, ILogger<DbInitializer> logger)
+        public DbInitializer(
+            ApplicationDbContext context, 
+            ILogger<DbInitializer> logger,
+            IServiceProvider serviceProvider)
         {
             _context = context;
             _logger = logger;
+            _serviceProvider = serviceProvider;
         }
 
         public async Task RunAsync()
         {
             try
             {
+                // Run migrations only
                 await _context.Database.MigrateAsync();
                 _logger.LogInformation("Migrated database successfully.");
-
-                if (!await _context.Users.AnyAsync())
-                {
-                    await SeedUsersAsync();
-                    _logger.LogInformation("Seeded initial data successfully.");
-                }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while initializing the database.");
+                _logger.LogError(ex, "An error occurred while running migrations.");
             }
         }
 
-        private async Task SeedUsersAsync()
+        public async Task SeedAsync()
         {
-            var sysAdminRole = new Role { RoleID = Guid.NewGuid(), RoleName = UserRole.SysAdmin.ToString() };
-            var busAdminRole = new Role { RoleID = Guid.NewGuid(), RoleName = UserRole.BusAdmin.ToString() };
-            var passengerRole = new Role { RoleID = Guid.NewGuid(), RoleName = UserRole.Passenger.ToString() };
-
-            if (!_context.Roles.Any())
+            try
             {
-                _context.Roles.AddRange(sysAdminRole, busAdminRole, passengerRole);
-                await _context.SaveChangesAsync();
+                var seederLogger = _serviceProvider.GetRequiredService<ILogger<DataSeeder>>();
+                var seeder = new DataSeeder(_context, seederLogger);
+                await seeder.SeedAsync();
             }
-            else
+            catch (Exception ex)
             {
-                sysAdminRole = await _context.Roles.FirstAsync(r => r.RoleName == UserRole.SysAdmin.ToString());
+                _logger.LogError(ex, "An error occurred while seeding the database.");
             }
-
-            var adminUser = new User
-            {
-                UserID = Guid.NewGuid(),
-                Username = "sysadmin",
-                Email = "admin@example.com",
-                PasswordHash = "abcdef", // sample, it must be hashed in prod
-                PhoneNumber = "1234567890",
-                RoleID = sysAdminRole.RoleID,
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            var phuongTrang = new BusCompany
-            {
-                CompanyID = Guid.NewGuid(),
-                Name = "Phuong Trang Lines",
-                LicenseNumber = "VN-PT-001",
-                Hotline = "19006067",
-                IsApproved = true
-            };
-
-            _context.Users.Add(adminUser);
-            _context.BusCompanies.Add(phuongTrang);
-
-            await _context.SaveChangesAsync();
         }
     }
 }
