@@ -6,12 +6,15 @@ function MainHeader() {
     const { theme, toggleTheme } = useThemeContext();
 
     return (
-        <Box py="3" className="sticky top-0 z-50 bg-(--color-panel-solid) backdrop-blur-sm border-b border-(--gray-a4)">
+        <Box
+            py="3"
+            className="sticky top-0 z-50 bg-(--color-panel-solid)/90 backdrop-blur-xl border-b border-(--gray-a4)"
+        >
             <Container size="4" px="4">
                 <Flex justify="between" align="center">
-                    <Flex align="center" gap="2" className="cursor-pointer">
+                    <Flex align="center" gap="3" className="cursor-pointer">
                         <IconButton variant="soft" color="blue" size="3">
-                            <BusFront size={24} color="white" />
+                            <BusFront size={24} />
                         </IconButton>
                         <Heading size="5" color="blue" weight="bold">
                             XeNhanh

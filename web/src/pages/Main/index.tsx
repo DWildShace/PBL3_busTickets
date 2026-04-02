@@ -14,7 +14,7 @@ import {
     Avatar,
     Link,
 } from "@radix-ui/themes";
-import { MapPin, Calendar, Search, Ticket, Headset, ChevronRight, Star } from "lucide-react";
+import { MapPin, Calendar, Search, Ticket, Headset, Star } from "lucide-react";
 
 const PROMOS = [
     {
@@ -78,43 +78,42 @@ const POPULAR_ROUTES = [
 function HeroAndSearch() {
     return (
         <Box position="relative" pb="9" style={{ backgroundColor: "var(--gray-2)" }}>
-            <Box
+            <div
+                className="relative flex items-center justify-center h-96 bg-cover bg-center"
                 style={{
-                    height: "360px",
                     backgroundImage:
                         "linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&q=80&w=2000')",
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
                 }}
             >
-                <Container size="4" px="4" height="100%">
-                    <Flex direction="column" justify="center" align="center" height="100%" gap="4" pt="6">
+                <Container size="4" px="4" className="h-fit mb-16 flex-1">
+                    <Flex direction="column" justify="center" align="center" className="h-full flex-1" gap="4" pt="6">
                         <Heading size={{ initial: "7", md: "8" }} align="center" style={{ color: "white" }}>
-                            VéXeNhanh - Nền tảng đặt vé xe hàng đầu
+                            XeNhanh - Nền tảng đặt vé xe hàng đầu
                         </Heading>
                         <Text size="5" align="center" style={{ color: "var(--gray-a9)" }}>
                             Cam kết giữ chỗ 100% - Hoàn tiền nếu không có xe.
                         </Text>
                     </Flex>
                 </Container>
-            </Box>
+            </div>
 
             <Container size="4" px="4" style={{ marginTop: "-64px", position: "relative", zIndex: 10 }}>
                 <Card
-                    size="4"
+                    size="3"
                     variant="surface"
+                    className="pt-3!"
                     style={{ backgroundColor: "var(--color-panel-solid)", boxShadow: "var(--shadow-4)" }}
                 >
                     <Tabs.Root defaultValue="oneway">
                         <Tabs.List size="2" mb="4" color="blue">
                             <Tabs.Trigger value="oneway">
                                 <Flex align="center" gap="2">
-                                    <ChevronRight size={16} /> Một chiều
+                                    Một chiều
                                 </Flex>
                             </Tabs.Trigger>
                             <Tabs.Trigger value="roundtrip">
                                 <Flex align="center" gap="2">
-                                    <ChevronRight size={16} /> Khứ hồi
+                                    Khứ hồi
                                 </Flex>
                             </Tabs.Trigger>
                         </Tabs.List>
