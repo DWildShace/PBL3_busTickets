@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using Pbl3.Models;
 using Pbl3.Enums;
 
@@ -8,16 +9,19 @@ namespace Pbl3.Data
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<DataSeeder> _logger;
+        private readonly IHostEnvironment _environment;
 
-        public DataSeeder(ApplicationDbContext context, ILogger<DataSeeder> logger)
+        public DataSeeder(ApplicationDbContext context, ILogger<DataSeeder> logger, IHostEnvironment environment)
         {
             _context = context;
             _logger = logger;
+            _environment = environment;
         }
 
         public async Task SeedAsync()
         {
-            // Check if data already exists
+            await ImportAdministrativeLocationDataAsync();
+
             if (await _context.Users.AnyAsync())
             {
                 _logger.LogInformation("Database already has data. Skipping seed.");
@@ -49,6 +53,64 @@ namespace Pbl3.Data
             _logger.LogInformation("Successfully seeded comprehensive test data!");
         }
 
+        private async Task ImportAdministrativeLocationDataAsync()
+        {
+            var hasAdministrativeRegions = await _context.AdministrativeRegions.AnyAsync();
+            var hasAdministrativeUnits = await _context.AdministrativeUnits.AnyAsync();
+            var hasProvinces = await _context.Provinces.AnyAsync();
+            var hasDistricts = await _context.Districts.AnyAsync();
+            var hasWards = await _context.Wards.AnyAsync();
+
+            if (hasAdministrativeRegions && hasAdministrativeUnits && hasProvinces && hasDistricts && hasWards)
+            {
+                _logger.LogInformation("Administrative location data already exists. Skipping SQL import.");
+                return;
+            }
+
+            if (hasAdministrativeRegions || hasAdministrativeUnits || hasProvinces || hasDistricts || hasWards)
+            {
+                _logger.LogWarning("Administrative location tables are partially populated. Skipping SQL import to avoid duplicate data.");
+                return;
+            }
+
+            var sqlFilePath = Path.Combine(_environment.ContentRootPath, "seed", "locations", "data.sql");
+
+            if (!File.Exists(sqlFilePath))
+            {
+                throw new FileNotFoundException("Administrative location seed file was not found.", sqlFilePath);
+            }
+
+            var sqlScript = await File.ReadAllTextAsync(sqlFilePath);
+
+            if (string.IsNullOrWhiteSpace(sqlScript))
+            {
+                _logger.LogWarning("Administrative location seed file is empty. Skipping SQL import.");
+                return;
+            }
+
+            var previousCommandTimeout = _context.Database.GetCommandTimeout();
+
+            try
+            {
+                _context.Database.SetCommandTimeout(TimeSpan.FromMinutes(5));
+
+                await using var transaction = await _context.Database.BeginTransactionAsync();
+                await _context.Database.ExecuteSqlRawAsync(sqlScript);
+                await transaction.CommitAsync();
+
+                _logger.LogInformation("Imported administrative location data from {SqlFilePath}", sqlFilePath);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to import administrative location data from {SqlFilePath}", sqlFilePath);
+                throw;
+            }
+            finally
+            {
+                _context.Database.SetCommandTimeout(previousCommandTimeout);
+            }
+        }
+
         private async Task SeedRolesAsync()
         {
             var roles = new List<Role>
@@ -68,6 +130,8 @@ namespace Pbl3.Data
             var sysAdminRole = await _context.Roles.FirstAsync(r => r.RoleName == UserRole.SysAdmin.ToString());
             var busAdminRole = await _context.Roles.FirstAsync(r => r.RoleName == UserRole.BusAdmin.ToString());
             var passengerRole = await _context.Roles.FirstAsync(r => r.RoleName == UserRole.Passenger.ToString());
+            var passwordHasher = new PasswordHasher<User>();
+            const string defaultSeedPassword = "hashed_password_123";
 
             var users = new List<User>
             {
@@ -76,7 +140,7 @@ namespace Pbl3.Data
                     UserID = Guid.NewGuid(),
                     Username = "sysadmin",
                     Email = "admin@example.com",
-                    PasswordHash = "hashed_password_123", // In production, use proper password hashing
+                    PasswordHash = string.Empty,
                     PhoneNumber = "0901234567",
                     RoleID = sysAdminRole.RoleID,
                     IsActive = true,
@@ -87,7 +151,7 @@ namespace Pbl3.Data
                     UserID = Guid.NewGuid(),
                     Username = "busadmin_pt",
                     Email = "admin@phuongtrang.com",
-                    PasswordHash = "hashed_password_123",
+                    PasswordHash = string.Empty,
                     PhoneNumber = "0902345678",
                     RoleID = busAdminRole.RoleID,
                     IsActive = true,
@@ -98,7 +162,7 @@ namespace Pbl3.Data
                     UserID = Guid.NewGuid(),
                     Username = "busadmin_mt",
                     Email = "admin@maitanh.com",
-                    PasswordHash = "hashed_password_123",
+                    PasswordHash = string.Empty,
                     PhoneNumber = "0903456789",
                     RoleID = busAdminRole.RoleID,
                     IsActive = true,
@@ -109,7 +173,7 @@ namespace Pbl3.Data
                     UserID = Guid.NewGuid(),
                     Username = "nguyenvana",
                     Email = "nguyenvana@gmail.com",
-                    PasswordHash = "hashed_password_123",
+                    PasswordHash = string.Empty,
                     PhoneNumber = "0904567890",
                     RoleID = passengerRole.RoleID,
                     IsActive = true,
@@ -120,13 +184,18 @@ namespace Pbl3.Data
                     UserID = Guid.NewGuid(),
                     Username = "tranthib",
                     Email = "tranthib@gmail.com",
-                    PasswordHash = "hashed_password_123",
+                    PasswordHash = string.Empty,
                     PhoneNumber = "0905678901",
                     RoleID = passengerRole.RoleID,
                     IsActive = true,
                     CreatedAt = DateTime.UtcNow
                 }
             };
+
+            foreach (var user in users)
+            {
+                user.PasswordHash = passwordHasher.HashPassword(user, defaultSeedPassword);
+            }
 
             _context.Users.AddRange(users);
             await _context.SaveChangesAsync();
@@ -323,89 +392,143 @@ namespace Pbl3.Data
 
         private async Task SeedStationsAsync()
         {
-            var stations = new List<Station>
+            var stationLocations = new[]
             {
-                new Station
+                new
                 {
-                    StationID = Guid.NewGuid(),
                     Name = "Bến xe Miền Đông",
-                    AddressDetail = "292 Đinh Bộ Lĩnh, Phường 26, Bình Thạnh",
-                    Province = "Hồ Chí Minh",
+                    AddressDetail = "292 Đinh Bộ Lĩnh",
+                    ProvinceCode = "79",
+                    DistrictCode = "765",
+                    WardCode = (string?)"26914",
                     Type = StationType.BusStation,
                     Latitude = 10.8142,
                     Longitude = 106.7100
                 },
-                new Station
+                new
                 {
-                    StationID = Guid.NewGuid(),
                     Name = "Bến xe Miền Tây",
-                    AddressDetail = "395 Kinh Dương Vương, Phường An Lạc, Bình Tân",
-                    Province = "Hồ Chí Minh",
+                    AddressDetail = "395 Kinh Dương Vương",
+                    ProvinceCode = "79",
+                    DistrictCode = "777",
+                    WardCode = (string?)"27460",
                     Type = StationType.BusStation,
                     Latitude = 10.7387,
                     Longitude = 106.6102
                 },
-                new Station
+                new
                 {
-                    StationID = Guid.NewGuid(),
                     Name = "Bến xe Mỹ Đình",
-                    AddressDetail = "Đường Phạm Hùng, Nam Từ Liêm",
-                    Province = "Hà Nội",
+                    AddressDetail = "Đường Phạm Hùng",
+                    ProvinceCode = "01",
+                    DistrictCode = "019",
+                    WardCode = null as string,
                     Type = StationType.BusStation,
                     Latitude = 21.0278,
                     Longitude = 105.7802
                 },
-                new Station
+                new
                 {
-                    StationID = Guid.NewGuid(),
                     Name = "Bến xe Trung tâm Đà Nẵng",
-                    AddressDetail = "201 Tôn Đức Thắng, Hòa Minh, Liên Chiểu",
-                    Province = "Đà Nẵng",
+                    AddressDetail = "201 Tôn Đức Thắng",
+                    ProvinceCode = "48",
+                    DistrictCode = "490",
+                    WardCode = (string?)"20200",
                     Type = StationType.BusStation,
                     Latitude = 16.0544,
                     Longitude = 108.1851
                 },
-                new Station
+                new
                 {
-                    StationID = Guid.NewGuid(),
                     Name = "Bến xe Phương Trang Đà Lạt",
-                    AddressDetail = "1 Tô Hiến Thành, Phường 3",
-                    Province = "Lâm Đồng",
+                    AddressDetail = "1 Tô Hiến Thành",
+                    ProvinceCode = "68",
+                    DistrictCode = "672",
+                    WardCode = (string?)"24802",
                     Type = StationType.BusStation,
                     Latitude = 11.9404,
                     Longitude = 108.4583
                 },
-                new Station
+                new
                 {
-                    StationID = Guid.NewGuid(),
                     Name = "Bến xe Vũng Tàu",
-                    AddressDetail = "192 Nam Kỳ Khởi Nghĩa, Phường 7",
-                    Province = "Bà Rịa - Vũng Tàu",
+                    AddressDetail = "192 Nam Kỳ Khởi Nghĩa",
+                    ProvinceCode = "77",
+                    DistrictCode = "747",
+                    WardCode = (string?)"26524",
                     Type = StationType.BusStation,
                     Latitude = 10.3459,
                     Longitude = 107.0843
                 },
-                new Station
+                new
                 {
-                    StationID = Guid.NewGuid(),
                     Name = "Bến xe Cần Thơ",
-                    AddressDetail = "Đường Nguyễn Văn Linh, Hưng Lợi, Ninh Kiều",
-                    Province = "Cần Thơ",
+                    AddressDetail = "Đường Nguyễn Văn Linh",
+                    ProvinceCode = "92",
+                    DistrictCode = "916",
+                    WardCode = (string?)"31147",
                     Type = StationType.BusStation,
                     Latitude = 10.0452,
                     Longitude = 105.7469
                 },
-                new Station
+                new
                 {
-                    StationID = Guid.NewGuid(),
                     Name = "Bến xe Nha Trang",
-                    AddressDetail = "23 Tháng 10, Phước Long, Nha Trang",
-                    Province = "Khánh Hòa",
+                    AddressDetail = "23 Tháng 10",
+                    ProvinceCode = "56",
+                    DistrictCode = "568",
+                    WardCode = (string?)"22378",
                     Type = StationType.BusStation,
                     Latitude = 12.2388,
                     Longitude = 109.1967
                 }
             };
+
+            var provinceCodes = stationLocations.Select(x => x.ProvinceCode).Distinct().ToList();
+            var districtCodes = stationLocations.Select(x => x.DistrictCode).Distinct().ToList();
+            var wardCodes = stationLocations.Where(x => x.WardCode != null).Select(x => x.WardCode!).Distinct().ToList();
+
+            var provinces = await _context.Provinces
+                .Where(p => provinceCodes.Contains(p.Code))
+                .ToDictionaryAsync(p => p.Code);
+
+            var districts = await _context.Districts
+                .Where(d => districtCodes.Contains(d.Code))
+                .ToDictionaryAsync(d => d.Code);
+
+            var wards = await _context.Wards
+                .Where(w => wardCodes.Contains(w.Code))
+                .ToDictionaryAsync(w => w.Code);
+
+            var missingProvinceCodes = provinceCodes.Where(code => !provinces.ContainsKey(code)).ToList();
+            var missingDistrictCodes = districtCodes.Where(code => !districts.ContainsKey(code)).ToList();
+            var missingWardCodes = wardCodes.Where(code => !wards.ContainsKey(code)).ToList();
+
+            if (missingProvinceCodes.Count != 0 || missingDistrictCodes.Count != 0 || missingWardCodes.Count != 0)
+            {
+                throw new InvalidOperationException(
+                    $"Administrative seed data is incomplete. Missing province codes: {string.Join(", ", missingProvinceCodes)}; " +
+                    $"missing district codes: {string.Join(", ", missingDistrictCodes)}; " +
+                    $"missing ward codes: {string.Join(", ", missingWardCodes)}");
+            }
+
+            var stations = stationLocations
+                .Select(location => new Station
+                {
+                    StationID = Guid.NewGuid(),
+                    Name = location.Name,
+                    AddressDetail = location.AddressDetail,
+                    ProvinceCode = location.ProvinceCode,
+                    Province = provinces[location.ProvinceCode],
+                    DistrictCode = location.DistrictCode,
+                    District = districts[location.DistrictCode],
+                    WardCode = location.WardCode,
+                    Ward = location.WardCode != null ? wards[location.WardCode] : null,
+                    Type = location.Type,
+                    Latitude = location.Latitude,
+                    Longitude = location.Longitude
+                })
+                .ToList();
 
             _context.Stations.AddRange(stations);
             await _context.SaveChangesAsync();

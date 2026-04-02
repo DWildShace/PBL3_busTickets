@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Pbl3.Data;
@@ -7,7 +8,7 @@ namespace Pbl3.Controllers
 {
     [ApiController]
 
-    [Route("api/[controller]")]
+    [Route("api/test_users")]
     public class UsersController : ControllerBase
     {
 
@@ -18,6 +19,7 @@ namespace Pbl3.Controllers
             _context = context;
         }
 
+        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -28,6 +30,7 @@ namespace Pbl3.Controllers
                     Id = u.UserID,
                     Username = u.Username,
                     Email = u.Email,
+                    PhoneNumber = u.PhoneNumber ?? "",
                     Role = u.Role != null ? u.Role.RoleName : "Unknown"
                 })
                 .ToListAsync();

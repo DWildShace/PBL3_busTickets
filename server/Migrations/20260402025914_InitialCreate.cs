@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
@@ -24,6 +25,40 @@ namespace pbl3_server.Migrations
                 .Annotation("Npgsql:Enum:ticket_status", "issued,checked_in,cancelled")
                 .Annotation("Npgsql:Enum:trip_status", "scheduled,running,completed,cancelled")
                 .Annotation("Npgsql:Enum:user_role", "passenger,bus_admin,sys_admin");
+
+            migrationBuilder.CreateTable(
+                name: "administrative_regions",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    name = table.Column<string>(type: "text", nullable: false),
+                    name_en = table.Column<string>(type: "text", nullable: false),
+                    code_name = table.Column<string>(type: "text", nullable: true),
+                    code_name_en = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_administrative_regions", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "administrative_units",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    full_name = table.Column<string>(type: "text", nullable: true),
+                    full_name_en = table.Column<string>(type: "text", nullable: true),
+                    short_name = table.Column<string>(type: "text", nullable: true),
+                    short_name_en = table.Column<string>(type: "text", nullable: true),
+                    code_name = table.Column<string>(type: "text", nullable: true),
+                    code_name_en = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_administrative_units", x => x.id);
+                });
 
             migrationBuilder.CreateTable(
                 name: "BusCompanies",
@@ -67,20 +102,31 @@ namespace pbl3_server.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Stations",
+                name: "provinces",
                 columns: table => new
                 {
-                    StationID = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    AddressDetail = table.Column<string>(type: "text", nullable: true),
-                    Province = table.Column<string>(type: "text", nullable: true),
-                    Type = table.Column<int>(type: "integer", nullable: false),
-                    Latitude = table.Column<double>(type: "double precision", nullable: true),
-                    Longitude = table.Column<double>(type: "double precision", nullable: true)
+                    code = table.Column<string>(type: "text", nullable: false),
+                    name = table.Column<string>(type: "text", nullable: false),
+                    name_en = table.Column<string>(type: "text", nullable: true),
+                    full_name = table.Column<string>(type: "text", nullable: false),
+                    full_name_en = table.Column<string>(type: "text", nullable: true),
+                    code_name = table.Column<string>(type: "text", nullable: true),
+                    administrative_unit_id = table.Column<int>(type: "integer", nullable: true),
+                    administrative_region_id = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Stations", x => x.StationID);
+                    table.PrimaryKey("PK_provinces", x => x.code);
+                    table.ForeignKey(
+                        name: "FK_provinces_administrative_regions_administrative_region_id",
+                        column: x => x.administrative_region_id,
+                        principalTable: "administrative_regions",
+                        principalColumn: "id");
+                    table.ForeignKey(
+                        name: "FK_provinces_administrative_units_administrative_unit_id",
+                        column: x => x.administrative_unit_id,
+                        principalTable: "administrative_units",
+                        principalColumn: "id");
                 });
 
             migrationBuilder.CreateTable(
@@ -180,32 +226,31 @@ namespace pbl3_server.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "RouteStops",
+                name: "districts",
                 columns: table => new
                 {
-                    BusRouteStopID = table.Column<Guid>(type: "uuid", nullable: false),
-                    RouteID = table.Column<Guid>(type: "uuid", nullable: false),
-                    StationID = table.Column<Guid>(type: "uuid", nullable: false),
-                    StopOrder = table.Column<int>(type: "integer", nullable: false),
-                    IsPickUp = table.Column<bool>(type: "boolean", nullable: false),
-                    IsDropOff = table.Column<bool>(type: "boolean", nullable: false),
-                    DurationFromStart = table.Column<int>(type: "integer", nullable: false)
+                    code = table.Column<string>(type: "text", nullable: false),
+                    name = table.Column<string>(type: "text", nullable: false),
+                    name_en = table.Column<string>(type: "text", nullable: true),
+                    full_name = table.Column<string>(type: "text", nullable: true),
+                    full_name_en = table.Column<string>(type: "text", nullable: true),
+                    code_name = table.Column<string>(type: "text", nullable: true),
+                    province_code = table.Column<string>(type: "text", nullable: true),
+                    administrative_unit_id = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_RouteStops", x => x.BusRouteStopID);
+                    table.PrimaryKey("PK_districts", x => x.code);
                     table.ForeignKey(
-                        name: "FK_RouteStops_BusRoutes_RouteID",
-                        column: x => x.RouteID,
-                        principalTable: "BusRoutes",
-                        principalColumn: "RouteID",
-                        onDelete: ReferentialAction.Cascade);
+                        name: "FK_districts_administrative_units_administrative_unit_id",
+                        column: x => x.administrative_unit_id,
+                        principalTable: "administrative_units",
+                        principalColumn: "id");
                     table.ForeignKey(
-                        name: "FK_RouteStops_Stations_StationID",
-                        column: x => x.StationID,
-                        principalTable: "Stations",
-                        principalColumn: "StationID",
-                        onDelete: ReferentialAction.Cascade);
+                        name: "FK_districts_provinces_province_code",
+                        column: x => x.province_code,
+                        principalTable: "provinces",
+                        principalColumn: "code");
                 });
 
             migrationBuilder.CreateTable(
@@ -330,6 +375,34 @@ namespace pbl3_server.Migrations
                         column: x => x.UserID,
                         principalTable: "Users",
                         principalColumn: "UserID");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "wards",
+                columns: table => new
+                {
+                    code = table.Column<string>(type: "text", nullable: false),
+                    name = table.Column<string>(type: "text", nullable: false),
+                    name_en = table.Column<string>(type: "text", nullable: true),
+                    full_name = table.Column<string>(type: "text", nullable: true),
+                    full_name_en = table.Column<string>(type: "text", nullable: true),
+                    code_name = table.Column<string>(type: "text", nullable: true),
+                    district_code = table.Column<string>(type: "text", nullable: true),
+                    administrative_unit_id = table.Column<int>(type: "integer", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_wards", x => x.code);
+                    table.ForeignKey(
+                        name: "FK_wards_administrative_units_administrative_unit_id",
+                        column: x => x.administrative_unit_id,
+                        principalTable: "administrative_units",
+                        principalColumn: "id");
+                    table.ForeignKey(
+                        name: "FK_wards_districts_district_code",
+                        column: x => x.district_code,
+                        principalTable: "districts",
+                        principalColumn: "code");
                 });
 
             migrationBuilder.CreateTable(
@@ -488,6 +561,43 @@ namespace pbl3_server.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Stations",
+                columns: table => new
+                {
+                    StationID = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    AddressDetail = table.Column<string>(type: "text", nullable: true),
+                    province_code = table.Column<string>(type: "text", nullable: true),
+                    district_code = table.Column<string>(type: "text", nullable: true),
+                    ward_code = table.Column<string>(type: "text", nullable: true),
+                    Type = table.Column<int>(type: "integer", nullable: false),
+                    Latitude = table.Column<double>(type: "double precision", nullable: true),
+                    Longitude = table.Column<double>(type: "double precision", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Stations", x => x.StationID);
+                    table.ForeignKey(
+                        name: "FK_Stations_districts_district_code",
+                        column: x => x.district_code,
+                        principalTable: "districts",
+                        principalColumn: "code",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_Stations_provinces_province_code",
+                        column: x => x.province_code,
+                        principalTable: "provinces",
+                        principalColumn: "code",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_Stations_wards_ward_code",
+                        column: x => x.ward_code,
+                        principalTable: "wards",
+                        principalColumn: "code",
+                        onDelete: ReferentialAction.SetNull);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Refunds",
                 columns: table => new
                 {
@@ -506,6 +616,35 @@ namespace pbl3_server.Migrations
                         column: x => x.IntentID,
                         principalTable: "PaymentIntents",
                         principalColumn: "IntentID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "RouteStops",
+                columns: table => new
+                {
+                    BusRouteStopID = table.Column<Guid>(type: "uuid", nullable: false),
+                    RouteID = table.Column<Guid>(type: "uuid", nullable: false),
+                    StationID = table.Column<Guid>(type: "uuid", nullable: false),
+                    StopOrder = table.Column<int>(type: "integer", nullable: false),
+                    IsPickUp = table.Column<bool>(type: "boolean", nullable: false),
+                    IsDropOff = table.Column<bool>(type: "boolean", nullable: false),
+                    DurationFromStart = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RouteStops", x => x.BusRouteStopID);
+                    table.ForeignKey(
+                        name: "FK_RouteStops_BusRoutes_RouteID",
+                        column: x => x.RouteID,
+                        principalTable: "BusRoutes",
+                        principalColumn: "RouteID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_RouteStops_Stations_StationID",
+                        column: x => x.StationID,
+                        principalTable: "Stations",
+                        principalColumn: "StationID",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -540,6 +679,16 @@ namespace pbl3_server.Migrations
                 column: "CompanyID");
 
             migrationBuilder.CreateIndex(
+                name: "IX_districts_administrative_unit_id",
+                table: "districts",
+                column: "administrative_unit_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_districts_province_code",
+                table: "districts",
+                column: "province_code");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Notifications_BookingID",
                 table: "Notifications",
                 column: "BookingID");
@@ -558,6 +707,16 @@ namespace pbl3_server.Migrations
                 name: "IX_PaymentIntents_BookingID",
                 table: "PaymentIntents",
                 column: "BookingID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_provinces_administrative_region_id",
+                table: "provinces",
+                column: "administrative_region_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_provinces_administrative_unit_id",
+                table: "provinces",
+                column: "administrative_unit_id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Refunds_IntentID",
@@ -605,6 +764,21 @@ namespace pbl3_server.Migrations
                 column: "BusTypeID");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Stations_district_code",
+                table: "Stations",
+                column: "district_code");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Stations_province_code",
+                table: "Stations",
+                column: "province_code");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Stations_ward_code",
+                table: "Stations",
+                column: "ward_code");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Tickets_BookingID",
                 table: "Tickets",
                 column: "BookingID");
@@ -643,6 +817,16 @@ namespace pbl3_server.Migrations
                 name: "IX_Users_RoleID",
                 table: "Users",
                 column: "RoleID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_wards_administrative_unit_id",
+                table: "wards",
+                column: "administrative_unit_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_wards_district_code",
+                table: "wards",
+                column: "district_code");
         }
 
         /// <inheritdoc />
@@ -691,6 +875,9 @@ namespace pbl3_server.Migrations
                 name: "Bookings");
 
             migrationBuilder.DropTable(
+                name: "wards");
+
+            migrationBuilder.DropTable(
                 name: "BusRoutes");
 
             migrationBuilder.DropTable(
@@ -700,6 +887,9 @@ namespace pbl3_server.Migrations
                 name: "Users");
 
             migrationBuilder.DropTable(
+                name: "districts");
+
+            migrationBuilder.DropTable(
                 name: "BusCompanies");
 
             migrationBuilder.DropTable(
@@ -707,6 +897,15 @@ namespace pbl3_server.Migrations
 
             migrationBuilder.DropTable(
                 name: "Roles");
+
+            migrationBuilder.DropTable(
+                name: "provinces");
+
+            migrationBuilder.DropTable(
+                name: "administrative_regions");
+
+            migrationBuilder.DropTable(
+                name: "administrative_units");
         }
     }
 }

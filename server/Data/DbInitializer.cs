@@ -9,7 +9,7 @@ namespace Pbl3.Data
         private readonly IServiceProvider _serviceProvider;
 
         public DbInitializer(
-            ApplicationDbContext context, 
+            ApplicationDbContext context,
             ILogger<DbInitializer> logger,
             IServiceProvider serviceProvider)
         {
@@ -37,7 +37,8 @@ namespace Pbl3.Data
             try
             {
                 var seederLogger = _serviceProvider.GetRequiredService<ILogger<DataSeeder>>();
-                var seeder = new DataSeeder(_context, seederLogger);
+                var environment = _serviceProvider.GetRequiredService<IHostEnvironment>();
+                var seeder = new DataSeeder(_context, seederLogger, environment);
                 await seeder.SeedAsync();
             }
             catch (Exception ex)

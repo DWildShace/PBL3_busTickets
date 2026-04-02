@@ -1,5 +1,12 @@
-function App() {
-    return <></>;
-}
+import { Route, Routes } from "react-router-dom";
+import ScreenMain from "./screens/Main";
 
-export default App;
+export default function App() {
+    return (
+        <>
+            <Routes>
+                <Route path="/*" element={<ScreenMain />} />
+            </Routes>
+        </>
+    );
+}

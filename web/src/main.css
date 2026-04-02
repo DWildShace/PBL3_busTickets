@@ -1,0 +1,32 @@
+@import "tailwindcss";
+@import "@radix-ui/themes/styles.css";
+@import "@fontsource/inter/300.css";
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/700.css";
+@import "@fontsource/manrope/300.css";
+@import "@fontsource/manrope/400.css";
+@import "@fontsource/manrope/500.css";
+@import "@fontsource/manrope/700.css";
+
+@tailwind utilities;
+
+html {
+    color-scheme: light dark;
+    font-family: "Inter", sans-serif;
+}
+
+.radix-themes {
+    display: flex;
+    flex-direction: column;
+    --default-font-family: "Inter", sans-serif;
+    --heading-font-family: "Manrope", sans-serif;
+}
+
+.toast * {
+    font-family: "Inter", sans-serif;
+}
+
+.toast {
+    z-index: 9999999999999;
+}

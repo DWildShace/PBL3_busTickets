@@ -12,7 +12,7 @@ using Pbl3.Data;
 namespace pbl3_server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260311150608_InitialCreate")]
+    [Migration("20260402025914_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -36,6 +36,76 @@ namespace pbl3_server.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "trip_status", new[] { "scheduled", "running", "completed", "cancelled" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "user_role", new[] { "passenger", "bus_admin", "sys_admin" });
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("Pbl3.Models.AdministrativeRegion", b =>
+                {
+                    b.Property<int>("AdministrativeRegionID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("AdministrativeRegionID"));
+
+                    b.Property<string>("CodeName")
+                        .HasColumnType("text")
+                        .HasColumnName("code_name");
+
+                    b.Property<string>("CodeNameEn")
+                        .HasColumnType("text")
+                        .HasColumnName("code_name_en");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name_en");
+
+                    b.HasKey("AdministrativeRegionID");
+
+                    b.ToTable("administrative_regions");
+                });
+
+            modelBuilder.Entity("Pbl3.Models.AdministrativeUnit", b =>
+                {
+                    b.Property<int>("AdministrativeUnitID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("AdministrativeUnitID"));
+
+                    b.Property<string>("CodeName")
+                        .HasColumnType("text")
+                        .HasColumnName("code_name");
+
+                    b.Property<string>("CodeNameEn")
+                        .HasColumnType("text")
+                        .HasColumnName("code_name_en");
+
+                    b.Property<string>("FullName")
+                        .HasColumnType("text")
+                        .HasColumnName("full_name");
+
+                    b.Property<string>("FullNameEn")
+                        .HasColumnType("text")
+                        .HasColumnName("full_name_en");
+
+                    b.Property<string>("ShortName")
+                        .HasColumnType("text")
+                        .HasColumnName("short_name");
+
+                    b.Property<string>("ShortNameEn")
+                        .HasColumnType("text")
+                        .HasColumnName("short_name_en");
+
+                    b.HasKey("AdministrativeUnitID");
+
+                    b.ToTable("administrative_units");
+                });
 
             modelBuilder.Entity("Pbl3.Models.Booking", b =>
                 {
@@ -253,6 +323,50 @@ namespace pbl3_server.Migrations
                     b.ToTable("BusTypes");
                 });
 
+            modelBuilder.Entity("Pbl3.Models.District", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasColumnType("text")
+                        .HasColumnName("code");
+
+                    b.Property<int?>("AdministrativeUnitID")
+                        .HasColumnType("integer")
+                        .HasColumnName("administrative_unit_id");
+
+                    b.Property<string>("CodeName")
+                        .HasColumnType("text")
+                        .HasColumnName("code_name");
+
+                    b.Property<string>("FullName")
+                        .HasColumnType("text")
+                        .HasColumnName("full_name");
+
+                    b.Property<string>("FullNameEn")
+                        .HasColumnType("text")
+                        .HasColumnName("full_name_en");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.Property<string>("NameEn")
+                        .HasColumnType("text")
+                        .HasColumnName("name_en");
+
+                    b.Property<string>("ProvinceCode")
+                        .HasColumnType("text")
+                        .HasColumnName("province_code");
+
+                    b.HasKey("Code");
+
+                    b.HasIndex("AdministrativeUnitID");
+
+                    b.HasIndex("ProvinceCode");
+
+                    b.ToTable("districts");
+                });
+
             modelBuilder.Entity("Pbl3.Models.Notification", b =>
                 {
                     b.Property<Guid>("NotifID")
@@ -343,6 +457,51 @@ namespace pbl3_server.Migrations
                     b.HasIndex("BookingID");
 
                     b.ToTable("PaymentIntents");
+                });
+
+            modelBuilder.Entity("Pbl3.Models.Province", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasColumnType("text")
+                        .HasColumnName("code");
+
+                    b.Property<int?>("AdministrativeRegionID")
+                        .HasColumnType("integer")
+                        .HasColumnName("administrative_region_id");
+
+                    b.Property<int?>("AdministrativeUnitID")
+                        .HasColumnType("integer")
+                        .HasColumnName("administrative_unit_id");
+
+                    b.Property<string>("CodeName")
+                        .HasColumnType("text")
+                        .HasColumnName("code_name");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("full_name");
+
+                    b.Property<string>("FullNameEn")
+                        .HasColumnType("text")
+                        .HasColumnName("full_name_en");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.Property<string>("NameEn")
+                        .HasColumnType("text")
+                        .HasColumnName("name_en");
+
+                    b.HasKey("Code");
+
+                    b.HasIndex("AdministrativeRegionID");
+
+                    b.HasIndex("AdministrativeUnitID");
+
+                    b.ToTable("provinces");
                 });
 
             modelBuilder.Entity("Pbl3.Models.Refund", b =>
@@ -491,6 +650,10 @@ namespace pbl3_server.Migrations
                     b.Property<string>("AddressDetail")
                         .HasColumnType("text");
 
+                    b.Property<string>("DistrictCode")
+                        .HasColumnType("text")
+                        .HasColumnName("district_code");
+
                     b.Property<double?>("Latitude")
                         .HasColumnType("double precision");
 
@@ -501,13 +664,24 @@ namespace pbl3_server.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Province")
-                        .HasColumnType("text");
+                    b.Property<string>("ProvinceCode")
+                        .HasColumnType("text")
+                        .HasColumnName("province_code");
 
                     b.Property<int>("Type")
                         .HasColumnType("integer");
 
+                    b.Property<string>("WardCode")
+                        .HasColumnType("text")
+                        .HasColumnName("ward_code");
+
                     b.HasKey("StationID");
+
+                    b.HasIndex("DistrictCode");
+
+                    b.HasIndex("ProvinceCode");
+
+                    b.HasIndex("WardCode");
 
                     b.ToTable("Stations");
                 });
@@ -631,6 +805,50 @@ namespace pbl3_server.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("Pbl3.Models.Ward", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasColumnType("text")
+                        .HasColumnName("code");
+
+                    b.Property<int?>("AdministrativeUnitID")
+                        .HasColumnType("integer")
+                        .HasColumnName("administrative_unit_id");
+
+                    b.Property<string>("CodeName")
+                        .HasColumnType("text")
+                        .HasColumnName("code_name");
+
+                    b.Property<string>("DistrictCode")
+                        .HasColumnType("text")
+                        .HasColumnName("district_code");
+
+                    b.Property<string>("FullName")
+                        .HasColumnType("text")
+                        .HasColumnName("full_name");
+
+                    b.Property<string>("FullNameEn")
+                        .HasColumnType("text")
+                        .HasColumnName("full_name_en");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.Property<string>("NameEn")
+                        .HasColumnType("text")
+                        .HasColumnName("name_en");
+
+                    b.HasKey("Code");
+
+                    b.HasIndex("AdministrativeUnitID");
+
+                    b.HasIndex("DistrictCode");
+
+                    b.ToTable("wards");
+                });
+
             modelBuilder.Entity("Pbl3.Models.Booking", b =>
                 {
                     b.HasOne("Pbl3.Models.User", "User")
@@ -716,6 +934,21 @@ namespace pbl3_server.Migrations
                     b.Navigation("Station");
                 });
 
+            modelBuilder.Entity("Pbl3.Models.District", b =>
+                {
+                    b.HasOne("Pbl3.Models.AdministrativeUnit", "AdministrativeUnit")
+                        .WithMany("Districts")
+                        .HasForeignKey("AdministrativeUnitID");
+
+                    b.HasOne("Pbl3.Models.Province", "Province")
+                        .WithMany("Districts")
+                        .HasForeignKey("ProvinceCode");
+
+                    b.Navigation("AdministrativeUnit");
+
+                    b.Navigation("Province");
+                });
+
             modelBuilder.Entity("Pbl3.Models.Notification", b =>
                 {
                     b.HasOne("Pbl3.Models.Booking", "Booking")
@@ -753,6 +986,21 @@ namespace pbl3_server.Migrations
                         .IsRequired();
 
                     b.Navigation("Booking");
+                });
+
+            modelBuilder.Entity("Pbl3.Models.Province", b =>
+                {
+                    b.HasOne("Pbl3.Models.AdministrativeRegion", "AdministrativeRegion")
+                        .WithMany("Provinces")
+                        .HasForeignKey("AdministrativeRegionID");
+
+                    b.HasOne("Pbl3.Models.AdministrativeUnit", "AdministrativeUnit")
+                        .WithMany("Provinces")
+                        .HasForeignKey("AdministrativeUnitID");
+
+                    b.Navigation("AdministrativeRegion");
+
+                    b.Navigation("AdministrativeUnit");
                 });
 
             modelBuilder.Entity("Pbl3.Models.Refund", b =>
@@ -819,6 +1067,30 @@ namespace pbl3_server.Migrations
                         .IsRequired();
 
                     b.Navigation("BusType");
+                });
+
+            modelBuilder.Entity("Pbl3.Models.Station", b =>
+                {
+                    b.HasOne("Pbl3.Models.District", "District")
+                        .WithMany("Stations")
+                        .HasForeignKey("DistrictCode")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Pbl3.Models.Province", "Province")
+                        .WithMany("Stations")
+                        .HasForeignKey("ProvinceCode")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Pbl3.Models.Ward", "Ward")
+                        .WithMany("Stations")
+                        .HasForeignKey("WardCode")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("District");
+
+                    b.Navigation("Province");
+
+                    b.Navigation("Ward");
                 });
 
             modelBuilder.Entity("Pbl3.Models.Ticket", b =>
@@ -892,6 +1164,35 @@ namespace pbl3_server.Migrations
                     b.Navigation("Role");
                 });
 
+            modelBuilder.Entity("Pbl3.Models.Ward", b =>
+                {
+                    b.HasOne("Pbl3.Models.AdministrativeUnit", "AdministrativeUnit")
+                        .WithMany("Wards")
+                        .HasForeignKey("AdministrativeUnitID");
+
+                    b.HasOne("Pbl3.Models.District", "District")
+                        .WithMany("Wards")
+                        .HasForeignKey("DistrictCode");
+
+                    b.Navigation("AdministrativeUnit");
+
+                    b.Navigation("District");
+                });
+
+            modelBuilder.Entity("Pbl3.Models.AdministrativeRegion", b =>
+                {
+                    b.Navigation("Provinces");
+                });
+
+            modelBuilder.Entity("Pbl3.Models.AdministrativeUnit", b =>
+                {
+                    b.Navigation("Districts");
+
+                    b.Navigation("Provinces");
+
+                    b.Navigation("Wards");
+                });
+
             modelBuilder.Entity("Pbl3.Models.Booking", b =>
                 {
                     b.Navigation("Notifications");
@@ -935,6 +1236,13 @@ namespace pbl3_server.Migrations
                     b.Navigation("Trips");
                 });
 
+            modelBuilder.Entity("Pbl3.Models.District", b =>
+                {
+                    b.Navigation("Stations");
+
+                    b.Navigation("Wards");
+                });
+
             modelBuilder.Entity("Pbl3.Models.Passenger", b =>
                 {
                     b.Navigation("Tickets");
@@ -943,6 +1251,13 @@ namespace pbl3_server.Migrations
             modelBuilder.Entity("Pbl3.Models.PaymentIntent", b =>
                 {
                     b.Navigation("Refunds");
+                });
+
+            modelBuilder.Entity("Pbl3.Models.Province", b =>
+                {
+                    b.Navigation("Districts");
+
+                    b.Navigation("Stations");
                 });
 
             modelBuilder.Entity("Pbl3.Models.Role", b =>
@@ -975,6 +1290,11 @@ namespace pbl3_server.Migrations
                     b.Navigation("Passengers");
 
                     b.Navigation("SeatHolds");
+                });
+
+            modelBuilder.Entity("Pbl3.Models.Ward", b =>
+                {
+                    b.Navigation("Stations");
                 });
 #pragma warning restore 612, 618
         }

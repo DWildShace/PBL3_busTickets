@@ -31,6 +31,11 @@ namespace Pbl3.Data
         public DbSet<Refund> Refunds { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<AdministrativeRegion> AdministrativeRegions { get; set; }
+        public DbSet<AdministrativeUnit> AdministrativeUnits { get; set; }
+        public DbSet<Province> Provinces { get; set; }
+        public DbSet<District> Districts { get; set; }
+        public DbSet<Ward> Wards { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -130,6 +135,59 @@ namespace Pbl3.Data
                 .HasOne(r => r.PaymentIntent)
                 .WithMany(pi => pi.Refunds)
                 .HasForeignKey(r => r.IntentID);
+
+            modelBuilder.Entity<Province>()
+                .HasOne(p => p.AdministrativeRegion)
+                .WithMany(ar => ar.Provinces)
+                .HasForeignKey(p => p.AdministrativeRegionID);
+
+            modelBuilder.Entity<Province>()
+                .HasOne(p => p.AdministrativeUnit)
+                .WithMany(au => au.Provinces)
+                .HasForeignKey(p => p.AdministrativeUnitID);
+
+            modelBuilder.Entity<District>()
+                .HasOne(d => d.Province)
+                .WithMany(p => p.Districts)
+                .HasForeignKey(d => d.ProvinceCode)
+                .HasPrincipalKey(p => p.Code);
+
+            modelBuilder.Entity<District>()
+                .HasOne(d => d.AdministrativeUnit)
+                .WithMany(au => au.Districts)
+                .HasForeignKey(d => d.AdministrativeUnitID);
+
+            modelBuilder.Entity<Ward>()
+                .HasOne(w => w.District)
+                .WithMany(d => d.Wards)
+                .HasForeignKey(w => w.DistrictCode)
+                .HasPrincipalKey(d => d.Code);
+
+            modelBuilder.Entity<Ward>()
+                .HasOne(w => w.AdministrativeUnit)
+                .WithMany(au => au.Wards)
+                .HasForeignKey(w => w.AdministrativeUnitID);
+
+            modelBuilder.Entity<Station>()
+                .HasOne(s => s.Province)
+                .WithMany(p => p.Stations)
+                .HasForeignKey(s => s.ProvinceCode)
+                .HasPrincipalKey(p => p.Code)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Station>()
+                .HasOne(s => s.District)
+                .WithMany(d => d.Stations)
+                .HasForeignKey(s => s.DistrictCode)
+                .HasPrincipalKey(d => d.Code)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Station>()
+                .HasOne(s => s.Ward)
+                .WithMany(w => w.Stations)
+                .HasForeignKey(s => s.WardCode)
+                .HasPrincipalKey(w => w.Code)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

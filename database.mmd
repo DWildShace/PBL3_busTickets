@@ -1,0 +1,274 @@
+---
+config:
+  layout: elk
+  look: neo
+  theme: redux-color
+---
+erDiagram
+	ROLE {
+		guid RoleID PK
+		string RoleName
+	}
+
+	USER {
+		guid UserID PK
+		guid RoleID FK
+		string Username
+		string Email
+		string PhoneNumber
+		bool IsActive
+		datetime CreatedAt
+	}
+
+	BUS_COMPANY {
+		guid CompanyID PK
+		string Name
+		string LicenseNumber
+		string Hotline
+		bool IsApproved
+	}
+
+	BUS_COMPANY_ADMIN {
+		guid UserID PK, FK
+		guid CompanyID FK
+	}
+
+	BUS_TYPE {
+		guid BusTypeID PK
+		string Name
+		int TotalSeats
+		string Description
+	}
+
+	SEAT_LAYOUT {
+		guid LayoutID PK
+		guid BusTypeID FK
+		string SeatLabel
+		int Floor
+		int SeatType
+		int PositionX
+		int PositionY
+	}
+
+	BUS {
+		guid BusID PK
+		guid CompanyID FK
+		guid BusTypeID FK
+		string PlateNumber
+		bool IsActive
+	}
+
+	BUS_IMAGE {
+		guid ImageID PK
+		guid BusID FK
+		string ImageURL
+	}
+
+	STATION {
+		guid StationID PK
+		string Name
+		string AddressDetail
+		string ProvinceCode FK
+		string DistrictCode FK
+		string WardCode FK
+		int Type
+		double Latitude
+		double Longitude
+	}
+
+	BUS_ROUTE {
+		guid RouteID PK
+		guid CompanyID FK
+		string RouteName
+		decimal DistanceEstimate
+		decimal DurationEstimate
+		bool IsActive
+	}
+
+	BUS_ROUTE_STOP {
+		guid BusRouteStopID PK
+		guid RouteID FK
+		guid StationID FK
+		int StopOrder
+		bool IsPickUp
+		bool IsDropOff
+		int DurationFromStart
+	}
+
+	TRIP {
+		guid TripID PK
+		guid RouteID FK
+		guid BusID FK
+		guid BusTypeID FK
+		date DepartureDate
+		datetime DepartureTime
+		datetime ArrivalTime
+		int Status
+	}
+
+	BOOKING {
+		guid BookingID PK
+		guid UserID FK
+		string ContactName
+		string ContactPhone
+		string ContactEmail
+		decimal TotalAmount
+		int Status
+		datetime CreatedAt
+		datetime ExpiresAt
+	}
+
+	PASSENGER {
+		guid PassengerID PK
+		guid UserID FK
+		string FullName
+		string PhoneNumber
+		string IdentityCard
+		string Email
+	}
+
+	TICKET {
+		guid TicketID PK
+		guid BookingID FK
+		guid TripID FK
+		guid PassengerID FK
+		guid SeatLayoutID FK
+		decimal FinalPrice
+		int Status
+		string TicketCode
+		string QrCode
+	}
+
+	SEAT_HOLD {
+		guid HoldID PK
+		guid TripID FK
+		guid SeatLayoutID FK
+		guid UserID FK
+		string SessionID
+		datetime ExpiresAt
+		int Status
+	}
+
+	PAYMENT_INTENT {
+		guid IntentID PK
+		guid BookingID FK
+		int Provider
+		decimal Amount
+		string Currency
+		int Status
+		datetime CreatedAt
+	}
+
+	REFUND {
+		guid RefundID PK
+		guid IntentID FK
+		decimal Amount
+		string Reason
+		int Status
+		datetime CreatedAt
+	}
+
+	REVIEW {
+		guid ReviewID PK
+		guid BookingID FK
+		guid TripID FK
+		int RatingScore
+		string Comment
+	}
+
+	NOTIFICATION {
+		guid NotifID PK
+		guid UserID FK
+		guid BookingID FK
+		int Type
+		string Content
+		int Status
+	}
+
+	ADMINISTRATIVE_REGION {
+		int AdministrativeRegionID PK
+		string Name
+		string NameEn
+		string CodeName
+		string CodeNameEn
+	}
+
+	ADMINISTRATIVE_UNIT {
+		int AdministrativeUnitID PK
+		string FullName
+		string FullNameEn
+		string ShortName
+		string ShortNameEn
+		string CodeName
+		string CodeNameEn
+	}
+
+	PROVINCE {
+		string Code PK
+		string Name
+		string FullName
+		int AdministrativeUnitID FK
+		int AdministrativeRegionID FK
+	}
+
+	DISTRICT {
+		string Code PK
+		string Name
+		string FullName
+		string ProvinceCode FK
+		int AdministrativeUnitID FK
+	}
+
+	WARD {
+		string Code PK
+		string Name
+		string FullName
+		string DistrictCode FK
+		int AdministrativeUnitID FK
+	}
+
+	ROLE ||--o{ USER : assigns
+	USER ||--o| BUS_COMPANY_ADMIN : has_admin_profile
+	BUS_COMPANY ||--o{ BUS_COMPANY_ADMIN : employs
+
+	BUS_COMPANY ||--o{ BUS : owns
+	BUS_TYPE ||--o{ BUS : classifies
+	BUS ||--o{ BUS_IMAGE : has
+	BUS_TYPE ||--o{ SEAT_LAYOUT : defines
+
+	BUS_COMPANY ||--o{ BUS_ROUTE : operates
+	BUS_ROUTE ||--o{ BUS_ROUTE_STOP : contains
+	STATION ||--o{ BUS_ROUTE_STOP : appears_in
+	BUS_ROUTE ||--o{ TRIP : schedules
+	BUS o|--o{ TRIP : assigned_to
+	BUS_TYPE ||--o{ TRIP : uses_layout
+
+	USER o|--o{ BOOKING : creates
+	USER o|--o{ PASSENGER : owns_profiles
+	USER o|--o{ SEAT_HOLD : places
+	USER ||--o{ NOTIFICATION : receives
+
+	BOOKING ||--o{ TICKET : contains
+	TRIP ||--o{ TICKET : issues
+	PASSENGER ||--o{ TICKET : rides_on
+	SEAT_LAYOUT ||--o{ TICKET : booked_as
+
+	TRIP ||--o{ SEAT_HOLD : reserves
+	SEAT_LAYOUT ||--o{ SEAT_HOLD : held_as
+
+	BOOKING ||--o{ PAYMENT_INTENT : pays_with
+	PAYMENT_INTENT ||--o{ REFUND : returns
+	BOOKING ||--o{ REVIEW : receives_review
+	TRIP ||--o{ REVIEW : is_reviewed_in
+	BOOKING ||--o{ NOTIFICATION : triggers
+
+	ADMINISTRATIVE_REGION o|--o{ PROVINCE : groups
+	ADMINISTRATIVE_UNIT o|--o{ PROVINCE : categorizes
+	PROVINCE o|--o{ DISTRICT : contains
+	ADMINISTRATIVE_UNIT o|--o{ DISTRICT : categorizes
+	DISTRICT o|--o{ WARD : contains
+	ADMINISTRATIVE_UNIT o|--o{ WARD : categorizes
+
+	PROVINCE o|--o{ STATION : locates
+	DISTRICT o|--o{ STATION : narrows
+	WARD o|--o{ STATION : pinpoints
