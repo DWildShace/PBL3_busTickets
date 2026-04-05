@@ -24,6 +24,17 @@ namespace Pbl3
 
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddControllers();
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy(
+                    "FrontendDev",
+                    policy =>
+                        policy
+                            .WithOrigins("http://localhost:5173")
+                            .AllowAnyHeader()
+                            .AllowAnyMethod()
+                );
+            });
 
             var connectionString =
                 Environment.GetEnvironmentVariable("DATABASE_URL")
@@ -158,6 +169,8 @@ namespace Pbl3
             }
 
             app.UseHttpsRedirection();
+
+            app.UseCors("FrontendDev");
 
             app.UseAuthentication();
             app.UseAuthorization();

@@ -7,6 +7,7 @@ import "@/locales/i18n";
 import { configure } from "mobx";
 import { BrowserRouter } from "react-router-dom";
 import { client } from "./api/client.gen.ts";
+import { getApiPing } from "./api/sdk.gen.ts";
 
 configure({
     enforceActions: "always",
@@ -25,3 +26,15 @@ createRoot(document.getElementById("root")!).render(
         </BrowserRouter>
     </StrictMode>,
 );
+
+// testing
+(async () => {
+    try {
+        const time = Date.now();
+        const r = await getApiPing();
+        console.log("API Ping Response:", r.data, r);
+        console.log("API Pong Time:", Date.now() - time + "ms");
+    } catch (error) {
+        console.error("API Ping Error:", error);
+    }
+})();
