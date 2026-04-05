@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetApiTestUsersData, GetApiTestUsersResponses, PostApiAuthLoginData, PostApiAuthLoginResponses, PostApiAuthRegisterData, PostApiAuthRegisterResponses } from './types.gen';
+import type { DeleteApiBusadminBusesByIdData, DeleteApiBusadminBusesByIdResponses, GetApiBusadminBusesCompanyByCompanyIdData, GetApiBusadminBusesCompanyByCompanyIdResponses, GetApiBusadminBusesGetAllBusData, GetApiBusadminBusesGetAllBusResponses, GetApiBusadminTicketsAdminByAdminIdData, GetApiBusadminTicketsAdminByAdminIdResponses, GetApiPassengerProfileData, GetApiPassengerProfileResponses, GetApiPassengerTicketsData, GetApiPassengerTicketsResponses, GetApiPingData, GetApiPingResponses, PatchApiBusadminBusesByIdStatusData, PatchApiBusadminBusesByIdStatusResponses, PostApiAuthLoginData, PostApiAuthLoginResponses, PostApiAuthRegisterData, PostApiAuthRegisterResponses, PostApiBusadminBusesData, PostApiBusadminBusesResponses, PutApiBusadminBusesByIdData, PutApiBusadminBusesByIdResponses, PutApiPassengerProfileData, PutApiPassengerProfileResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -19,6 +19,7 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 };
 
 export const postApiAuthLogin = <ThrowOnError extends boolean = false>(options?: Options<PostApiAuthLoginData, ThrowOnError>) => (options?.client ?? client).post<PostApiAuthLoginResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/auth/login',
     ...options,
     headers: {
@@ -28,6 +29,7 @@ export const postApiAuthLogin = <ThrowOnError extends boolean = false>(options?:
 });
 
 export const postApiAuthRegister = <ThrowOnError extends boolean = false>(options?: Options<PostApiAuthRegisterData, ThrowOnError>) => (options?.client ?? client).post<PostApiAuthRegisterResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
     url: '/api/auth/register',
     ...options,
     headers: {
@@ -36,4 +38,84 @@ export const postApiAuthRegister = <ThrowOnError extends boolean = false>(option
     }
 });
 
-export const getApiTestUsers = <ThrowOnError extends boolean = false>(options?: Options<GetApiTestUsersData, ThrowOnError>) => (options?.client ?? client).get<GetApiTestUsersResponses, unknown, ThrowOnError>({ url: '/api/test_users', ...options });
+export const getApiBusadminBusesGetAllBus = <ThrowOnError extends boolean = false>(options?: Options<GetApiBusadminBusesGetAllBusData, ThrowOnError>) => (options?.client ?? client).get<GetApiBusadminBusesGetAllBusResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/busadmin/buses/GetAllBus',
+    ...options
+});
+
+export const getApiBusadminBusesCompanyByCompanyId = <ThrowOnError extends boolean = false>(options: Options<GetApiBusadminBusesCompanyByCompanyIdData, ThrowOnError>) => (options.client ?? client).get<GetApiBusadminBusesCompanyByCompanyIdResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/busadmin/buses/company/{companyId}',
+    ...options
+});
+
+export const deleteApiBusadminBusesById = <ThrowOnError extends boolean = false>(options: Options<DeleteApiBusadminBusesByIdData, ThrowOnError>) => (options.client ?? client).delete<DeleteApiBusadminBusesByIdResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/busadmin/buses/{id}',
+    ...options
+});
+
+export const putApiBusadminBusesById = <ThrowOnError extends boolean = false>(options: Options<PutApiBusadminBusesByIdData, ThrowOnError>) => (options.client ?? client).put<PutApiBusadminBusesByIdResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/busadmin/buses/{id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const postApiBusadminBuses = <ThrowOnError extends boolean = false>(options?: Options<PostApiBusadminBusesData, ThrowOnError>) => (options?.client ?? client).post<PostApiBusadminBusesResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/busadmin/buses',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers
+    }
+});
+
+export const patchApiBusadminBusesByIdStatus = <ThrowOnError extends boolean = false>(options: Options<PatchApiBusadminBusesByIdStatusData, ThrowOnError>) => (options.client ?? client).patch<PatchApiBusadminBusesByIdStatusResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/busadmin/buses/{id}/status',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const getApiPassengerProfile = <ThrowOnError extends boolean = false>(options?: Options<GetApiPassengerProfileData, ThrowOnError>) => (options?.client ?? client).get<GetApiPassengerProfileResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/passenger/profile',
+    ...options
+});
+
+export const putApiPassengerProfile = <ThrowOnError extends boolean = false>(options?: Options<PutApiPassengerProfileData, ThrowOnError>) => (options?.client ?? client).put<PutApiPassengerProfileResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/passenger/profile',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers
+    }
+});
+
+export const getApiPassengerTickets = <ThrowOnError extends boolean = false>(options?: Options<GetApiPassengerTicketsData, ThrowOnError>) => (options?.client ?? client).get<GetApiPassengerTicketsResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/passenger/tickets',
+    ...options
+});
+
+export const getApiPing = <ThrowOnError extends boolean = false>(options?: Options<GetApiPingData, ThrowOnError>) => (options?.client ?? client).get<GetApiPingResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/ping',
+    ...options
+});
+
+export const getApiBusadminTicketsAdminByAdminId = <ThrowOnError extends boolean = false>(options: Options<GetApiBusadminTicketsAdminByAdminIdData, ThrowOnError>) => (options.client ?? client).get<GetApiBusadminTicketsAdminByAdminIdResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/busadmin/tickets/admin/{adminId}',
+    ...options
+});

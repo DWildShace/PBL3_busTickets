@@ -4,19 +4,660 @@ export type ClientOptions = {
     baseUrl: 'http://localhost:5026' | (string & {});
 };
 
+export type AdministrativeRegion = {
+    administrativeRegionID?: number;
+    name: string;
+    nameEn: string;
+    codeName?: string | null;
+    codeNameEn?: string | null;
+    provinces?: Array<Province> | null;
+};
+
+export type AdministrativeUnit = {
+    administrativeUnitID?: number;
+    fullName?: string | null;
+    fullNameEn?: string | null;
+    shortName?: string | null;
+    shortNameEn?: string | null;
+    codeName?: string | null;
+    codeNameEn?: string | null;
+    provinces?: Array<Province> | null;
+    districts?: Array<District> | null;
+    wards?: Array<Ward> | null;
+};
+
+export type Booking = {
+    bookingID?: string;
+    userID?: string | null;
+    user?: User;
+    contactName: string | null;
+    contactPhone: string | null;
+    contactEmail: string | null;
+    totalAmount?: number;
+    status?: BookingStatus;
+    createdAt?: string;
+    expiresAt?: string | null;
+    tickets?: Array<Ticket> | null;
+    paymentIntents?: Array<PaymentIntent> | null;
+    reviews?: Array<Review> | null;
+    notifications?: Array<Notification> | null;
+};
+
+export type BookingStatus = 0 | 1 | 2 | 3;
+
+export type Bus = {
+    busID?: string;
+    companyID?: string;
+    busCompany?: BusCompany;
+    busTypeID?: string;
+    busType?: BusType;
+    plateNumber: string | null;
+    isActive?: boolean;
+    busImages?: Array<BusImage> | null;
+    trips?: Array<Trip> | null;
+};
+
+export type BusCompany = {
+    companyID?: string;
+    name: string | null;
+    licenseNumber?: string | null;
+    hotline?: string | null;
+    isApproved?: boolean;
+    busCompanyAdmins?: Array<BusCompanyAdmin> | null;
+    buses?: Array<Bus> | null;
+    routes?: Array<BusRoute> | null;
+};
+
+export type BusCompanyAdmin = {
+    userID?: string;
+    user?: User;
+    companyID?: string;
+    busCompany?: BusCompany;
+    roles?: string | null;
+    readonly isOwner?: boolean;
+    readonly isAdmin?: boolean;
+    readonly roleCodes?: Array<string> | null;
+    readonly permissions?: Array<BusCompanyPermission> | null;
+};
+
+export type BusCompanyPermission = 0 | 1 | 2 | 3 | 4 | 5;
+
+export type BusImage = {
+    imageID?: string;
+    busID?: string;
+    bus?: Bus;
+    imageURL: string | null;
+};
+
+export type BusRoute = {
+    routeID?: string;
+    companyID?: string;
+    busCompany?: BusCompany;
+    routeName: string | null;
+    distanceEstimate?: number;
+    durationEstimate?: number;
+    isActive?: boolean;
+    busRouteStops?: Array<BusRouteStop> | null;
+    trips?: Array<Trip> | null;
+};
+
+export type BusRouteStop = {
+    busRouteStopID?: string;
+    routeID?: string;
+    route?: BusRoute;
+    stationID?: string;
+    station?: Station;
+    stopOrder?: number;
+    isPickUp?: boolean;
+    isDropOff?: boolean;
+    durationFromStart?: number;
+};
+
+export type BusType = {
+    busTypeID?: string;
+    name: string | null;
+    totalSeats?: number;
+    description?: string | null;
+    seatLayouts?: Array<SeatLayout> | null;
+    buses?: Array<Bus> | null;
+    trips?: Array<Trip> | null;
+};
+
+export type District = {
+    code: string | null;
+    name: string;
+    nameEn?: string | null;
+    fullName?: string | null;
+    fullNameEn?: string | null;
+    codeName?: string | null;
+    provinceCode?: string | null;
+    province?: Province;
+    administrativeUnitID?: number | null;
+    administrativeUnit?: AdministrativeUnit;
+    wards?: Array<Ward> | null;
+    stations?: Array<Station> | null;
+};
+
 export type LoginRequestDto = {
-    usernameOrEmail: string;
+    email: string;
     password: string;
 };
 
+export type Notification = {
+    notifID?: string;
+    userID?: string;
+    user?: User;
+    bookingID?: string;
+    booking?: Booking;
+    type?: NotificationType;
+    content: string | null;
+    status?: NotificationStatus;
+};
+
+export type NotificationStatus = 0 | 1;
+
+export type NotificationType = 0 | 1 | 2;
+
+export type Passenger = {
+    passengerID?: string;
+    userID?: string | null;
+    user?: User;
+    fullName: string | null;
+    phoneNumber?: string | null;
+    identityCard?: string | null;
+    email?: string | null;
+    tickets?: Array<Ticket> | null;
+};
+
+export type PaymentIntent = {
+    intentID?: string;
+    bookingID?: string;
+    booking?: Booking;
+    provider?: PaymentProvider;
+    amount?: number;
+    currency: string | null;
+    status?: PaymentIntentStatus;
+    createdAt?: string;
+    refunds?: Array<Refund> | null;
+};
+
+export type PaymentIntentStatus = 0 | 1 | 2;
+
+export type PaymentProvider = 0 | 1 | 2;
+
+export type Province = {
+    code: string | null;
+    name: string;
+    nameEn?: string | null;
+    fullName: string;
+    fullNameEn?: string | null;
+    codeName?: string | null;
+    administrativeUnitID?: number | null;
+    administrativeUnit?: AdministrativeUnit;
+    administrativeRegionID?: number | null;
+    administrativeRegion?: AdministrativeRegion;
+    districts?: Array<District> | null;
+    stations?: Array<Station> | null;
+};
+
+export type Refund = {
+    refundID?: string;
+    intentID?: string;
+    paymentIntent?: PaymentIntent;
+    amount?: number;
+    reason?: string | null;
+    status?: RefundStatus;
+    createdAt?: string;
+};
+
+export type RefundStatus = 0 | 1;
+
 export type RegisterRequestDto = {
-    username: string;
     email: string;
     password: string;
     confirmPassword: string;
     fullName: string;
     phoneNumber?: string | null;
     identityCard?: string | null;
+};
+
+export type Review = {
+    reviewID?: string;
+    bookingID?: string;
+    booking?: Booking;
+    tripID?: string;
+    trip?: Trip;
+    ratingScore?: number;
+    comment?: string | null;
+};
+
+export type Role = {
+    roleID?: string;
+    roleName: string | null;
+    users?: Array<User> | null;
+};
+
+export type SeatHold = {
+    holdID?: string;
+    tripID?: string;
+    trip?: Trip;
+    seatLayoutID?: string;
+    seatLayout?: SeatLayout;
+    userID?: string | null;
+    user?: User;
+    sessionID?: string | null;
+    expiresAt?: string;
+    status?: SeatHoldStatus;
+};
+
+export type SeatHoldStatus = 0 | 1 | 2;
+
+export type SeatLayout = {
+    layoutID?: string;
+    busTypeID?: string;
+    busType?: BusType;
+    seatLabel: string | null;
+    floor?: number;
+    seatType?: SeatType;
+    positionX?: number;
+    positionY?: number;
+};
+
+export type SeatType = 0 | 1 | 2 | 3 | 4 | 5;
+
+export type Station = {
+    stationID?: string;
+    name: string | null;
+    addressDetail?: string | null;
+    provinceCode?: string | null;
+    province?: Province;
+    districtCode?: string | null;
+    district?: District;
+    wardCode?: string | null;
+    ward?: Ward;
+    type?: StationType;
+    latitude?: number | null;
+    longitude?: number | null;
+    busRouteStops?: Array<BusRouteStop> | null;
+};
+
+export type StationType = 0 | 1 | 2;
+
+export type Ticket = {
+    ticketID?: string;
+    bookingID?: string;
+    booking?: Booking;
+    tripID?: string;
+    trip?: Trip;
+    passengerID?: string;
+    passenger?: Passenger;
+    seatLayoutID?: string;
+    seatLayout?: SeatLayout;
+    finalPrice?: number;
+    status?: TicketStatus;
+    ticketCode: string | null;
+    qrCode?: string | null;
+};
+
+export type TicketStatus = 0 | 1 | 2;
+
+export type Trip = {
+    tripID?: string;
+    routeID?: string;
+    route?: BusRoute;
+    busID?: string | null;
+    bus?: Bus;
+    busTypeID?: string;
+    busType?: BusType;
+    departureDate?: string;
+    departureTime?: string;
+    arrivalTime?: string;
+    status?: TripStatus;
+    seatHolds?: Array<SeatHold> | null;
+    tickets?: Array<Ticket> | null;
+    reviews?: Array<Review> | null;
+};
+
+export type TripStatus = 0 | 1 | 2 | 3;
+
+export type UpdatePassengerDto = {
+    fullName?: string | null;
+    phoneNumber?: string | null;
+    identityCard?: string | null;
+};
+
+export type User = {
+    userID?: string;
+    roleID?: string;
+    role?: Role;
+    passwordHash: string | null;
+    email: string | null;
+    phoneNumber?: string | null;
+    isActive?: boolean;
+    createdAt?: string;
+    busCompanyAdmins?: Array<BusCompanyAdmin> | null;
+    bookings?: Array<Booking> | null;
+    passengers?: Array<Passenger> | null;
+    seatHolds?: Array<SeatHold> | null;
+    notifications?: Array<Notification> | null;
+};
+
+export type Ward = {
+    code: string | null;
+    name: string;
+    nameEn?: string | null;
+    fullName?: string | null;
+    fullNameEn?: string | null;
+    codeName?: string | null;
+    districtCode?: string | null;
+    district?: District;
+    administrativeUnitID?: number | null;
+    administrativeUnit?: AdministrativeUnit;
+    stations?: Array<Station> | null;
+};
+
+export type AdministrativeRegionWritable = {
+    administrativeRegionID?: number;
+    name: string;
+    nameEn: string;
+    codeName?: string | null;
+    codeNameEn?: string | null;
+    provinces?: Array<ProvinceWritable> | null;
+};
+
+export type AdministrativeUnitWritable = {
+    administrativeUnitID?: number;
+    fullName?: string | null;
+    fullNameEn?: string | null;
+    shortName?: string | null;
+    shortNameEn?: string | null;
+    codeName?: string | null;
+    codeNameEn?: string | null;
+    provinces?: Array<ProvinceWritable> | null;
+    districts?: Array<DistrictWritable> | null;
+    wards?: Array<WardWritable> | null;
+};
+
+export type BookingWritable = {
+    bookingID?: string;
+    userID?: string | null;
+    user?: UserWritable;
+    contactName: string | null;
+    contactPhone: string | null;
+    contactEmail: string | null;
+    totalAmount?: number;
+    status?: BookingStatus;
+    createdAt?: string;
+    expiresAt?: string | null;
+    tickets?: Array<TicketWritable> | null;
+    paymentIntents?: Array<PaymentIntentWritable> | null;
+    reviews?: Array<ReviewWritable> | null;
+    notifications?: Array<NotificationWritable> | null;
+};
+
+export type BusWritable = {
+    busID?: string;
+    companyID?: string;
+    busCompany?: BusCompanyWritable;
+    busTypeID?: string;
+    busType?: BusTypeWritable;
+    plateNumber: string | null;
+    isActive?: boolean;
+    busImages?: Array<BusImageWritable> | null;
+    trips?: Array<TripWritable> | null;
+};
+
+export type BusCompanyWritable = {
+    companyID?: string;
+    name: string | null;
+    licenseNumber?: string | null;
+    hotline?: string | null;
+    isApproved?: boolean;
+    busCompanyAdmins?: Array<BusCompanyAdminWritable> | null;
+    buses?: Array<BusWritable> | null;
+    routes?: Array<BusRouteWritable> | null;
+};
+
+export type BusCompanyAdminWritable = {
+    userID?: string;
+    user?: UserWritable;
+    companyID?: string;
+    busCompany?: BusCompanyWritable;
+    roles?: string | null;
+};
+
+export type BusImageWritable = {
+    imageID?: string;
+    busID?: string;
+    bus?: BusWritable;
+    imageURL: string | null;
+};
+
+export type BusRouteWritable = {
+    routeID?: string;
+    companyID?: string;
+    busCompany?: BusCompanyWritable;
+    routeName: string | null;
+    distanceEstimate?: number;
+    durationEstimate?: number;
+    isActive?: boolean;
+    busRouteStops?: Array<BusRouteStopWritable> | null;
+    trips?: Array<TripWritable> | null;
+};
+
+export type BusRouteStopWritable = {
+    busRouteStopID?: string;
+    routeID?: string;
+    route?: BusRouteWritable;
+    stationID?: string;
+    station?: StationWritable;
+    stopOrder?: number;
+    isPickUp?: boolean;
+    isDropOff?: boolean;
+    durationFromStart?: number;
+};
+
+export type BusTypeWritable = {
+    busTypeID?: string;
+    name: string | null;
+    totalSeats?: number;
+    description?: string | null;
+    seatLayouts?: Array<SeatLayoutWritable> | null;
+    buses?: Array<BusWritable> | null;
+    trips?: Array<TripWritable> | null;
+};
+
+export type DistrictWritable = {
+    code: string | null;
+    name: string;
+    nameEn?: string | null;
+    fullName?: string | null;
+    fullNameEn?: string | null;
+    codeName?: string | null;
+    provinceCode?: string | null;
+    province?: ProvinceWritable;
+    administrativeUnitID?: number | null;
+    administrativeUnit?: AdministrativeUnitWritable;
+    wards?: Array<WardWritable> | null;
+    stations?: Array<StationWritable> | null;
+};
+
+export type NotificationWritable = {
+    notifID?: string;
+    userID?: string;
+    user?: UserWritable;
+    bookingID?: string;
+    booking?: BookingWritable;
+    type?: NotificationType;
+    content: string | null;
+    status?: NotificationStatus;
+};
+
+export type PassengerWritable = {
+    passengerID?: string;
+    userID?: string | null;
+    user?: UserWritable;
+    fullName: string | null;
+    phoneNumber?: string | null;
+    identityCard?: string | null;
+    email?: string | null;
+    tickets?: Array<TicketWritable> | null;
+};
+
+export type PaymentIntentWritable = {
+    intentID?: string;
+    bookingID?: string;
+    booking?: BookingWritable;
+    provider?: PaymentProvider;
+    amount?: number;
+    currency: string | null;
+    status?: PaymentIntentStatus;
+    createdAt?: string;
+    refunds?: Array<RefundWritable> | null;
+};
+
+export type ProvinceWritable = {
+    code: string | null;
+    name: string;
+    nameEn?: string | null;
+    fullName: string;
+    fullNameEn?: string | null;
+    codeName?: string | null;
+    administrativeUnitID?: number | null;
+    administrativeUnit?: AdministrativeUnitWritable;
+    administrativeRegionID?: number | null;
+    administrativeRegion?: AdministrativeRegionWritable;
+    districts?: Array<DistrictWritable> | null;
+    stations?: Array<StationWritable> | null;
+};
+
+export type RefundWritable = {
+    refundID?: string;
+    intentID?: string;
+    paymentIntent?: PaymentIntentWritable;
+    amount?: number;
+    reason?: string | null;
+    status?: RefundStatus;
+    createdAt?: string;
+};
+
+export type ReviewWritable = {
+    reviewID?: string;
+    bookingID?: string;
+    booking?: BookingWritable;
+    tripID?: string;
+    trip?: TripWritable;
+    ratingScore?: number;
+    comment?: string | null;
+};
+
+export type RoleWritable = {
+    roleID?: string;
+    roleName: string | null;
+    users?: Array<UserWritable> | null;
+};
+
+export type SeatHoldWritable = {
+    holdID?: string;
+    tripID?: string;
+    trip?: TripWritable;
+    seatLayoutID?: string;
+    seatLayout?: SeatLayoutWritable;
+    userID?: string | null;
+    user?: UserWritable;
+    sessionID?: string | null;
+    expiresAt?: string;
+    status?: SeatHoldStatus;
+};
+
+export type SeatLayoutWritable = {
+    layoutID?: string;
+    busTypeID?: string;
+    busType?: BusTypeWritable;
+    seatLabel: string | null;
+    floor?: number;
+    seatType?: SeatType;
+    positionX?: number;
+    positionY?: number;
+};
+
+export type StationWritable = {
+    stationID?: string;
+    name: string | null;
+    addressDetail?: string | null;
+    provinceCode?: string | null;
+    province?: ProvinceWritable;
+    districtCode?: string | null;
+    district?: DistrictWritable;
+    wardCode?: string | null;
+    ward?: WardWritable;
+    type?: StationType;
+    latitude?: number | null;
+    longitude?: number | null;
+    busRouteStops?: Array<BusRouteStopWritable> | null;
+};
+
+export type TicketWritable = {
+    ticketID?: string;
+    bookingID?: string;
+    booking?: BookingWritable;
+    tripID?: string;
+    trip?: TripWritable;
+    passengerID?: string;
+    passenger?: PassengerWritable;
+    seatLayoutID?: string;
+    seatLayout?: SeatLayoutWritable;
+    finalPrice?: number;
+    status?: TicketStatus;
+    ticketCode: string | null;
+    qrCode?: string | null;
+};
+
+export type TripWritable = {
+    tripID?: string;
+    routeID?: string;
+    route?: BusRouteWritable;
+    busID?: string | null;
+    bus?: BusWritable;
+    busTypeID?: string;
+    busType?: BusTypeWritable;
+    departureDate?: string;
+    departureTime?: string;
+    arrivalTime?: string;
+    status?: TripStatus;
+    seatHolds?: Array<SeatHoldWritable> | null;
+    tickets?: Array<TicketWritable> | null;
+    reviews?: Array<ReviewWritable> | null;
+};
+
+export type UserWritable = {
+    userID?: string;
+    roleID?: string;
+    role?: RoleWritable;
+    passwordHash: string | null;
+    email: string | null;
+    phoneNumber?: string | null;
+    isActive?: boolean;
+    createdAt?: string;
+    busCompanyAdmins?: Array<BusCompanyAdminWritable> | null;
+    bookings?: Array<BookingWritable> | null;
+    passengers?: Array<PassengerWritable> | null;
+    seatHolds?: Array<SeatHoldWritable> | null;
+    notifications?: Array<NotificationWritable> | null;
+};
+
+export type WardWritable = {
+    code: string | null;
+    name: string;
+    nameEn?: string | null;
+    fullName?: string | null;
+    fullNameEn?: string | null;
+    codeName?: string | null;
+    districtCode?: string | null;
+    district?: DistrictWritable;
+    administrativeUnitID?: number | null;
+    administrativeUnit?: AdministrativeUnitWritable;
+    stations?: Array<StationWritable> | null;
 };
 
 export type PostApiAuthLoginData = {
@@ -47,14 +688,164 @@ export type PostApiAuthRegisterResponses = {
     200: unknown;
 };
 
-export type GetApiTestUsersData = {
+export type GetApiBusadminBusesGetAllBusData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/test_users';
+    url: '/api/busadmin/buses/GetAllBus';
 };
 
-export type GetApiTestUsersResponses = {
+export type GetApiBusadminBusesGetAllBusResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type GetApiBusadminBusesCompanyByCompanyIdData = {
+    body?: never;
+    path: {
+        companyId: string;
+    };
+    query?: never;
+    url: '/api/busadmin/buses/company/{companyId}';
+};
+
+export type GetApiBusadminBusesCompanyByCompanyIdResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type DeleteApiBusadminBusesByIdData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/busadmin/buses/{id}';
+};
+
+export type DeleteApiBusadminBusesByIdResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type PutApiBusadminBusesByIdData = {
+    body?: BusWritable;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/busadmin/buses/{id}';
+};
+
+export type PutApiBusadminBusesByIdResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type PostApiBusadminBusesData = {
+    body?: BusWritable;
+    path?: never;
+    query?: never;
+    url: '/api/busadmin/buses';
+};
+
+export type PostApiBusadminBusesResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type PatchApiBusadminBusesByIdStatusData = {
+    body?: boolean;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/busadmin/buses/{id}/status';
+};
+
+export type PatchApiBusadminBusesByIdStatusResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type GetApiPassengerProfileData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/passenger/profile';
+};
+
+export type GetApiPassengerProfileResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type PutApiPassengerProfileData = {
+    body?: UpdatePassengerDto;
+    path?: never;
+    query?: never;
+    url: '/api/passenger/profile';
+};
+
+export type PutApiPassengerProfileResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type GetApiPassengerTicketsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/passenger/tickets';
+};
+
+export type GetApiPassengerTicketsResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type GetApiPingData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/ping';
+};
+
+export type GetApiPingResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type GetApiBusadminTicketsAdminByAdminIdData = {
+    body?: never;
+    path: {
+        adminId: string;
+    };
+    query?: never;
+    url: '/api/busadmin/tickets/admin/{adminId}';
+};
+
+export type GetApiBusadminTicketsAdminByAdminIdResponses = {
     /**
      * OK
      */
