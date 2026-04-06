@@ -3,7 +3,7 @@ import { BusFrontIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 export default function MainFooter() {
-    const { t } = useTranslation();
+    const { t } = useTranslation("footer");
 
     return (
         <Box py="9" pb="5" style={{ backgroundColor: "var(--gray-3)", borderTop: "1px solid var(--gray-a4)" }}>
@@ -15,44 +15,44 @@ export default function MainFooter() {
                                 <BusFrontIcon size={20} />
                             </IconButton>
                             <Heading size="4" color="blue" weight="bold">
-                                {t("header.brand")}
+                                XeNhanh
                             </Heading>
                         </Flex>
                         <Text size="2" color="gray" as="p" mb="2">
-                            {t("footer.copyright")}
+                            {t("copyright")}
                         </Text>
                         <Text size="2" color="gray" as="p">
-                            {t("footer.tagline")}
+                            {t("tagline")}
                         </Text>
                     </Box>
 
                     <Flex direction="column" gap="3">
                         <Heading size="3" highContrast>
-                            {t("footer.about.title")}
+                            {t("about.title")}
                         </Heading>
                         <Link href="#" size="2" color="gray">
-                            {t("footer.about.busSoftware")}
+                            {t("about.busSoftware")}
                         </Link>
                         <Link href="#" size="2" color="gray">
-                            {t("footer.about.becomePartner")}
+                            {t("about.becomePartner")}
                         </Link>
                         <Link href="#" size="2" color="gray">
-                            {t("footer.about.regulations")}
+                            {t("about.regulations")}
                         </Link>
                     </Flex>
 
                     <Flex direction="column" gap="3">
                         <Heading size="3" highContrast>
-                            {t("footer.support.title")}
+                            {t("support.title")}
                         </Heading>
                         <Link href="#" size="2" color="gray">
-                            {t("footer.support.bookingGuide")}
+                            {t("support.bookingGuide")}
                         </Link>
                         <Link href="#" size="2" color="gray">
-                            {t("footer.support.faq")}
+                            {t("support.faq")}
                         </Link>
                         <Link href="#" size="2" color="gray">
-                            {t("footer.support.privacy")}
+                            {t("support.privacy")}
                         </Link>
                     </Flex>
                 </Grid>
@@ -60,7 +60,7 @@ export default function MainFooter() {
                 <Separator size="4" mb="5" color="gray" />
 
                 <Text size="1" color="gray" align="center" as="div">
-                    {t("footer.address")}
+                    {t("address")}
                 </Text>
             </Container>
         </Box>

@@ -23,10 +23,6 @@ namespace Pbl3.Dtos
         public string Password { get; set; } = string.Empty;
 
         [Required]
-        [Compare(nameof(Password))]
-        public string ConfirmPassword { get; set; } = string.Empty;
-
-        [Required]
         [StringLength(100, MinimumLength = 2)]
         public string FullName { get; set; } = string.Empty;
 
@@ -42,5 +38,11 @@ namespace Pbl3.Dtos
         public required string Token { get; set; }
         public DateTime ExpiresAt { get; set; }
         public required UserDto User { get; set; }
+    }
+
+    public class OAuthGoogleRequestDto
+    {
+        [Required]
+        public string IdToken { get; set; } = string.Empty;
     }
 }

@@ -8,14 +8,14 @@ import { useTranslation } from "react-i18next";
 import LoginDialog from "@/dialogs/Login";
 
 const NAV_ITEMS = [
-    { key: "header.nav.manageOrders", href: "#" },
-    { key: "header.nav.openTicketSale", href: "#" },
-    { key: "header.nav.becomePartner", href: "#" },
+    { key: "nav.manageOrders", href: "#" },
+    { key: "nav.openTicketSale", href: "#" },
+    { key: "nav.becomePartner", href: "#" },
 ];
 
 function MainHeader() {
     const { theme, toggleTheme } = useThemeContext();
-    const { t } = useTranslation();
+    const { t } = useTranslation("header");
     const [authDialogOpen, setAuthDialogOpen] = useState(false);
 
     return (
@@ -30,7 +30,7 @@ function MainHeader() {
                             <BusFront size={24} />
                         </IconButton>
                         <Heading size="5" color="blue" weight="bold">
-                            {t("header.brand")}
+                            XeNhanh
                         </Heading>
                     </Flex>
 
@@ -67,7 +67,7 @@ function MainHeader() {
                             className="hidden md:inline-flex!"
                             onClick={() => setAuthDialogOpen(true)}
                         >
-                            {t("header.login")}
+                            {t("login")}
                         </Button>
                         <DropdownMenu.Root>
                             <DropdownMenu.Trigger>
@@ -84,7 +84,7 @@ function MainHeader() {
 
                                 <DropdownMenu.Separator />
                                 <DropdownMenu.Item onSelect={() => setAuthDialogOpen(true)}>
-                                    {t("header.login")}
+                                    {t("login")}
                                 </DropdownMenu.Item>
                             </DropdownMenu.Content>
                         </DropdownMenu.Root>

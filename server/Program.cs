@@ -11,6 +11,7 @@ using Pbl3.Data;
 using Pbl3.Enums;
 using Pbl3.Extensions;
 using Pbl3.Models;
+using Pbl3.Services;
 
 namespace Pbl3
 {
@@ -64,6 +65,7 @@ namespace Pbl3
 
             builder.Services.AddScoped<DbInitializer>();
             builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+            builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
             var jwtKey =
                 Environment.GetEnvironmentVariable("JWT_KEY") ?? builder.Configuration["Jwt:Key"];

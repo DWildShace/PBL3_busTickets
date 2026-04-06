@@ -8,6 +8,7 @@ import { configure } from "mobx";
 import { BrowserRouter } from "react-router-dom";
 import { client } from "./api/client.gen.ts";
 import { getApiPing } from "./api/sdk.gen.ts";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 configure({
     enforceActions: "always",
@@ -21,7 +22,9 @@ createRoot(document.getElementById("root")!).render(
     <StrictMode>
         <BrowserRouter>
             <ThemeProvider>
-                <App />
+                <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID!}>
+                    <App />
+                </GoogleOAuthProvider>
             </ThemeProvider>
         </BrowserRouter>
     </StrictMode>,

@@ -1,11 +1,5 @@
-import footer from "./footer";
-import header from "./header";
-import hero from "./hero";
-
 const I18nCommon = {
-    header,
-    hero,
-    footer,
+    or: "hoặc",
 };
 
 export default I18nCommon;

@@ -1,8 +1,11 @@
 import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Box, Button, Dialog, Flex, IconButton, Link, Tabs, Text, TextField } from "@radix-ui/themes";
+import { Box, Button, Dialog, Flex, IconButton, Link, Separator, Tabs, Text, TextField } from "@radix-ui/themes";
 import { ArrowLeft, KeyRound, LockKeyhole, Mail, UserRound, XIcon } from "lucide-react";
+import { GoogleLogin } from "@react-oauth/google";
+import { useThemeContext } from "@/controller/ThemeProvider";
+import { cn } from "@/lib/utils";
 
 type AuthView = "login" | "register" | "forgot";
 
@@ -18,24 +21,24 @@ export default function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
     const meta = useMemo(() => {
         if (view === "register") {
             return {
-                title: t("header.auth.register.title"),
-                description: t("header.auth.register.description"),
-                badge: t("header.auth.register.badge"),
+                title: t("auth:register.title"),
+                description: t("auth:register.description"),
+                badge: t("auth:register.badge"),
             };
         }
 
         if (view === "forgot") {
             return {
-                title: t("header.auth.forgot.title"),
-                description: t("header.auth.forgot.description"),
-                badge: t("header.auth.forgot.badge"),
+                title: t("auth:forgot.title"),
+                description: t("auth:forgot.description"),
+                badge: t("auth:forgot.badge"),
             };
         }
 
         return {
-            title: t("header.auth.login.title"),
-            description: t("header.auth.login.description"),
-            badge: t("header.auth.login.badge"),
+            title: t("auth:login.title"),
+            description: t("auth:login.description"),
+            badge: t("auth:login.badge"),
         };
     }, [t, view]);
 
@@ -75,10 +78,10 @@ export default function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
                         >
                             <Tabs.List size="2" color="blue" mb="5" className="w-full">
                                 <Tabs.Trigger value="login" className="flex-1!">
-                                    {t("header.auth.login.tab")}
+                                    {t("auth:login.tab")}
                                 </Tabs.Trigger>
                                 <Tabs.Trigger value="register" className="flex-1!">
-                                    {t("header.auth.register.tab")}
+                                    {t("auth:register.tab")}
                                 </Tabs.Trigger>
                             </Tabs.List>
 
@@ -106,20 +109,53 @@ function LoginForm({
     onForgotPassword: () => void;
     onSwitchToRegister: () => void;
 }) {
+    const [isLoading, setIsLoading] = useState(false);
     const { t } = useTranslation();
+    const { mode } = useThemeContext();
 
     return (
         <Flex direction="column" gap="4">
-            <FieldLabel label={t("header.auth.fields.email")}>
-                <TextField.Root size="3" placeholder={t("header.auth.login.placeholders.email")}>
+            <div
+                className={cn(
+                    "flex justify-center items-center w-full gbtn",
+                    isLoading && "opacity-50 pointer-events-none",
+                )}
+                style={{
+                    colorScheme: "light",
+                }}
+            >
+                <GoogleLogin
+                    onSuccess={(credentialResponse) => {
+                        // handleGoogleLogin(credentialResponse.credential!);
+                    }}
+                    onError={() => {
+                        // setError((prev) => ({ ...prev, global: "auth:google_login_failed" }));
+                    }}
+                    theme={mode === 1 ? "filled_black" : "filled_blue"}
+                    size="large"
+                    width="100%"
+                    useOneTap
+                    text={"signin_with"}
+                    logo_alignment="center"
+                />
+            </div>
+            <Flex align="center" gap="3" className="w-full">
+                <Separator size="4" className="flex-1" />
+                <Text size="1" color="gray" weight="medium" className="uppercase!">
+                    {t("common:or")}
+                </Text>
+                <Separator size="4" className="flex-1" />
+            </Flex>
+            <FieldLabel label={t("auth:fields.email")}>
+                <TextField.Root size="3" placeholder={t("auth:login.placeholders.email")}>
                     <TextField.Slot>
                         <Mail size={16} />
                     </TextField.Slot>
                 </TextField.Root>
             </FieldLabel>
 
-            <FieldLabel label={t("header.auth.fields.password")}>
-                <TextField.Root size="3" type="password" placeholder={t("header.auth.login.placeholders.password")}>
+            <FieldLabel label={t("auth:fields.password")}>
+                <TextField.Root size="3" type="password" placeholder={t("auth:login.placeholders.password")}>
                     <TextField.Slot>
                         <LockKeyhole size={16} />
                     </TextField.Slot>
@@ -135,15 +171,15 @@ function LoginForm({
                     }}
                     href="#"
                 >
-                    {t("header.auth.forgot.cta")}
+                    {t("auth:forgot.cta")}
                 </Link>
             </Flex>
 
-            <Button size="3">{t("header.auth.login.submit")}</Button>
+            <Button size="3">{t("auth:login.submit")}</Button>
 
             <FooterHint>
                 <Text size="2" color="gray">
-                    {t("header.auth.login.switchPrompt")}
+                    {t("auth:login.switchPrompt")}
                 </Text>
                 <Link
                     size="2"
@@ -153,7 +189,7 @@ function LoginForm({
                     }}
                     href="#"
                 >
-                    {t("header.auth.register.tab")}
+                    {t("auth:register.tab")}
                 </Link>
             </FooterHint>
         </Flex>
@@ -162,39 +198,70 @@ function LoginForm({
 
 function RegisterForm({ onSwitchToLogin }: { onSwitchToLogin: () => void }) {
     const { t } = useTranslation();
+    const { mode } = useThemeContext();
+    const [isLoading, setIsLoading] = useState(false);
 
     return (
         <Flex direction="column" gap="4">
-            <FieldLabel label={t("header.auth.fields.fullName")}>
-                <TextField.Root size="3" placeholder={t("header.auth.register.placeholders.fullName")}>
+            <div
+                className={cn(
+                    "flex justify-center items-center w-full gbtn",
+                    isLoading && "opacity-50 pointer-events-none",
+                )}
+                style={{
+                    colorScheme: "light",
+                }}
+            >
+                <GoogleLogin
+                    onSuccess={(credentialResponse) => {
+                        setIsLoading(true);
+                        // handleGoogleLogin(credentialResponse.credential!);
+                    }}
+                    onError={() => {
+                        setIsLoading(false);
+                        // setError((prev) => ({ ...prev, global: "auth:google_login_failed" }));
+                    }}
+                    theme={mode === 1 ? "filled_black" : "filled_blue"}
+                    size="large"
+                    width="100%"
+                    useOneTap
+                    text={"signup_with"}
+                    logo_alignment="center"
+                />
+            </div>
+            <Flex align="center" gap="3" className="w-full">
+                <Separator size="4" className="flex-1" />
+                <Text size="1" color="gray" weight="medium" className="uppercase!">
+                    {t("common:or")}
+                </Text>
+                <Separator size="4" className="flex-1" />
+            </Flex>
+            <FieldLabel label={t("auth:fields.fullName")}>
+                <TextField.Root size="3" placeholder={t("auth:register.placeholders.fullName")}>
                     <TextField.Slot>
                         <UserRound size={16} />
                     </TextField.Slot>
                 </TextField.Root>
             </FieldLabel>
 
-            <FieldLabel label={t("header.auth.fields.email")}>
-                <TextField.Root size="3" placeholder={t("header.auth.register.placeholders.email")}>
+            <FieldLabel label={t("auth:fields.email")}>
+                <TextField.Root size="3" placeholder={t("auth:register.placeholders.email")}>
                     <TextField.Slot>
                         <Mail size={16} />
                     </TextField.Slot>
                 </TextField.Root>
             </FieldLabel>
 
-            <FieldLabel label={t("header.auth.fields.password")}>
-                <TextField.Root size="3" type="password" placeholder={t("header.auth.register.placeholders.password")}>
+            <FieldLabel label={t("auth:fields.password")}>
+                <TextField.Root size="3" type="password" placeholder={t("auth:register.placeholders.password")}>
                     <TextField.Slot>
                         <LockKeyhole size={16} />
                     </TextField.Slot>
                 </TextField.Root>
             </FieldLabel>
 
-            <FieldLabel label={t("header.auth.fields.confirmPassword")}>
-                <TextField.Root
-                    size="3"
-                    type="password"
-                    placeholder={t("header.auth.register.placeholders.confirmPassword")}
-                >
+            <FieldLabel label={t("auth:fields.confirmPassword")}>
+                <TextField.Root size="3" type="password" placeholder={t("auth:register.placeholders.confirmPassword")}>
                     <TextField.Slot>
                         <KeyRound size={16} />
                     </TextField.Slot>
@@ -202,14 +269,14 @@ function RegisterForm({ onSwitchToLogin }: { onSwitchToLogin: () => void }) {
             </FieldLabel>
 
             <Text size="2" color="gray">
-                {t("header.auth.register.helper")}
+                {t("auth:register.helper")}
             </Text>
 
-            <Button size="3">{t("header.auth.register.submit")}</Button>
+            <Button size="3">{t("auth:register.submit")}</Button>
 
             <FooterHint>
                 <Text size="2" color="gray">
-                    {t("header.auth.register.switchPrompt")}
+                    {t("auth:register.switchPrompt")}
                 </Text>
                 <Link
                     size="2"
@@ -219,7 +286,7 @@ function RegisterForm({ onSwitchToLogin }: { onSwitchToLogin: () => void }) {
                     }}
                     href="#"
                 >
-                    {t("header.auth.login.tab")}
+                    {t("auth:login.tab")}
                 </Link>
             </FooterHint>
         </Flex>
@@ -234,12 +301,12 @@ function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
             <div>
                 <Button size="1" color="gray" variant="ghost" onClick={onBack}>
                     <ArrowLeft size={16} />
-                    {t("header.auth.forgot.back")}
+                    {t("auth:forgot.back")}
                 </Button>
             </div>
 
-            <FieldLabel label={t("header.auth.fields.email")}>
-                <TextField.Root size="3" placeholder={t("header.auth.forgot.placeholders.email")}>
+            <FieldLabel label={t("auth:fields.email")}>
+                <TextField.Root size="3" placeholder={t("auth:forgot.placeholders.email")}>
                     <TextField.Slot>
                         <Mail size={16} />
                     </TextField.Slot>
@@ -247,10 +314,10 @@ function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
             </FieldLabel>
 
             <Text size="2" color="gray">
-                {t("header.auth.forgot.helper")}
+                {t("auth:forgot.helper")}
             </Text>
 
-            <Button size="3">{t("header.auth.forgot.submit")}</Button>
+            <Button size="3">{t("auth:forgot.submit")}</Button>
         </Flex>
     );
 }

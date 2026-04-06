@@ -45,6 +45,14 @@ const auth = {
             email: "Enter your email for recovery",
         },
     },
+    msg: {
+        invalid_credentials: "Invalid email or password. Please try again.",
+        google_login_failed: "Google login failed. Please try again.",
+        legacy_login_is_not_allowed: "Legacy login is not allowed.",
+        account_is_banned: "Account is banned.",
+        email_already_in_use: "Email is already in use.",
+        password_mismatch: "Password and confirm password do not match.",
+    },
 };
 
 export default auth;

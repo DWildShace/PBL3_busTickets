@@ -2,9 +2,9 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { DeleteApiBusadminBusesByIdData, DeleteApiBusadminBusesByIdResponses, GetApiBusadminBusesCompanyByCompanyIdData, GetApiBusadminBusesCompanyByCompanyIdResponses, GetApiBusadminBusesGetAllBusData, GetApiBusadminBusesGetAllBusResponses, GetApiBusadminTicketsAdminByAdminIdData, GetApiBusadminTicketsAdminByAdminIdResponses, GetApiPassengerProfileData, GetApiPassengerProfileResponses, GetApiPassengerTicketsData, GetApiPassengerTicketsResponses, GetApiPingData, GetApiPingResponses, PatchApiBusadminBusesByIdStatusData, PatchApiBusadminBusesByIdStatusResponses, PostApiAuthLoginData, PostApiAuthLoginResponses, PostApiAuthRegisterData, PostApiAuthRegisterResponses, PostApiBusadminBusesData, PostApiBusadminBusesResponses, PutApiBusadminBusesByIdData, PutApiBusadminBusesByIdResponses, PutApiPassengerProfileData, PutApiPassengerProfileResponses } from './types.gen';
+import type { DeleteApiBusadminBusesByIdData, DeleteApiBusadminBusesByIdResponses, GetApiBusadminBusesCompanyByCompanyIdData, GetApiBusadminBusesCompanyByCompanyIdResponses, GetApiBusadminBusesGetAllBusData, GetApiBusadminBusesGetAllBusResponses, GetApiBusadminTicketsAdminByAdminIdData, GetApiBusadminTicketsAdminByAdminIdResponses, GetApiPassengerProfileData, GetApiPassengerProfileResponses, GetApiPassengerTicketsData, GetApiPassengerTicketsResponses, GetApiPingData, GetApiPingResponses, PatchApiBusadminBusesByIdStatusData, PatchApiBusadminBusesByIdStatusResponses, PostApiAuthLoginData, PostApiAuthLoginResponses, PostApiAuthOauthGoogleData, PostApiAuthOauthGoogleResponses, PostApiAuthRegisterData, PostApiAuthRegisterResponses, PostApiBusadminBusesData, PostApiBusadminBusesResponses, PutApiBusadminBusesByIdData, PutApiBusadminBusesByIdResponses, PutApiPassengerProfileData, PutApiPassengerProfileResponses } from './types.gen';
 
-export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
+export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
      * You can provide a client instance returned by `createClient()` instead of
      * individual options. This might be also useful if you want to implement a
@@ -17,6 +17,16 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
      */
     meta?: Record<string, unknown>;
 };
+
+export const postApiAuthOauthGoogle = <ThrowOnError extends boolean = false>(options?: Options<PostApiAuthOauthGoogleData, ThrowOnError>) => (options?.client ?? client).post<PostApiAuthOauthGoogleResponses, unknown, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/api/auth/oauth/google',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers
+    }
+});
 
 export const postApiAuthLogin = <ThrowOnError extends boolean = false>(options?: Options<PostApiAuthLoginData, ThrowOnError>) => (options?.client ?? client).post<PostApiAuthLoginResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],

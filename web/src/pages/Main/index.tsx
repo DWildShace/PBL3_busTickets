@@ -16,62 +16,62 @@ import {
 } from "@radix-ui/themes";
 import { useThemeContext } from "@/controller/ThemeProvider";
 import { ArrowRight, Calendar, Headset, MapPin, Search, ShieldCheck, Sparkles, Star, Ticket } from "lucide-react";
-import clsx from "clsx";
 import { useTranslation } from "react-i18next";
+import { cn } from "@/lib/utils";
 
 const PROMOS = [
     {
         id: 1,
-        titleKey: "hero.promotions.items.newUser.title",
+        titleKey: "promotions.items.newUser.title",
         code: "NEW20",
         image: "/images/promo-new-user.svg",
-        validUntilKey: "hero.promotions.items.newUser.validUntil",
+        validUntilKey: "promotions.items.newUser.validUntil",
     },
     {
         id: 2,
-        titleKey: "hero.promotions.items.dalat.title",
+        titleKey: "promotions.items.dalat.title",
         code: "DALAT50K",
         image: "/images/promo-dalat.svg",
-        validUntilKey: "hero.promotions.items.dalat.validUntil",
+        validUntilKey: "promotions.items.dalat.validUntil",
     },
     {
         id: 3,
-        titleKey: "hero.promotions.items.roundtrip.title",
+        titleKey: "promotions.items.roundtrip.title",
         code: "KHUHOI100",
         image: "/images/promo-roundtrip.svg",
-        validUntilKey: "hero.promotions.items.roundtrip.validUntil",
+        validUntilKey: "promotions.items.roundtrip.validUntil",
     },
 ];
 
 const POPULAR_ROUTES = [
     {
         id: 1,
-        fromKey: "hero.popularRoutes.places.saigon",
-        toKey: "hero.popularRoutes.places.dalat",
+        fromKey: "popularRoutes.places.saigon",
+        toKey: "popularRoutes.places.dalat",
         price: "250.000đ",
         oldPrice: "350.000đ",
         image: "https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&q=80&w=900&h=700",
     },
     {
         id: 2,
-        fromKey: "hero.popularRoutes.places.hanoi",
-        toKey: "hero.popularRoutes.places.sapa",
+        fromKey: "popularRoutes.places.hanoi",
+        toKey: "popularRoutes.places.sapa",
         price: "300.000đ",
         oldPrice: "400.000đ",
         image: "https://images.unsplash.com/photo-1521295121783-8a321d551ad2?auto=format&fit=crop&q=80&w=900&h=700",
     },
     {
         id: 3,
-        fromKey: "hero.popularRoutes.places.saigon",
-        toKey: "hero.popularRoutes.places.nhatrang",
+        fromKey: "popularRoutes.places.saigon",
+        toKey: "popularRoutes.places.nhatrang",
         price: "220.000đ",
         oldPrice: "",
         image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=900&h=700",
     },
     {
         id: 4,
-        fromKey: "hero.popularRoutes.places.danang",
-        toKey: "hero.popularRoutes.places.hoian",
+        fromKey: "popularRoutes.places.danang",
+        toKey: "popularRoutes.places.hoian",
         price: "100.000đ",
         oldPrice: "150.000đ",
         image: "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?auto=format&fit=crop&q=80&w=900&h=700",
@@ -80,12 +80,12 @@ const POPULAR_ROUTES = [
 
 function HeroAndSearch() {
     const { mode } = useThemeContext();
-    const { t } = useTranslation();
+    const { t } = useTranslation("hero");
 
     return (
         <Box position="relative" pb="9" style={{ backgroundColor: "var(--gray-2)" }}>
             <div
-                className={clsx("relative flex items-center justify-center h-96 bg-cover bg-center")}
+                className={cn("relative flex items-center justify-center h-96 bg-cover bg-center")}
                 style={{
                     backgroundImage:
                         mode === 1
@@ -96,10 +96,10 @@ function HeroAndSearch() {
                 <Container size="4" px="4" className="h-fit mb-16 flex-1">
                     <Flex direction="column" justify="center" align="center" className="h-full flex-1" gap="2" pt="6">
                         <Heading size={{ initial: "7", md: "8" }} align="center">
-                            {t("hero.title")}
+                            {t("title")}
                         </Heading>
                         <Text size="5" align="center" color="gray">
-                            {t("hero.subtitle")}
+                            {t("subtitle")}
                         </Text>
                     </Flex>
                 </Container>
@@ -111,12 +111,12 @@ function HeroAndSearch() {
                         <Tabs.List size="2" mb="4" color="blue">
                             <Tabs.Trigger value="oneway">
                                 <Flex align="center" gap="2">
-                                    {t("hero.tabs.oneway")}
+                                    {t("tabs.oneway")}
                                 </Flex>
                             </Tabs.Trigger>
                             <Tabs.Trigger value="roundtrip">
                                 <Flex align="center" gap="2">
-                                    {t("hero.tabs.roundtrip")}
+                                    {t("tabs.roundtrip")}
                                 </Flex>
                             </Tabs.Trigger>
                         </Tabs.List>
@@ -126,9 +126,9 @@ function HeroAndSearch() {
                                 <Grid columns={{ initial: "1", md: "4" }} gap="4" align="end">
                                     <Box>
                                         <Text as="div" size="2" weight="bold" mb="2" color="gray" highContrast>
-                                            {t("hero.fields.from")}
+                                            {t("fields.from")}
                                         </Text>
-                                        <TextField.Root size="3" placeholder={t("hero.placeholders.fromFull")}>
+                                        <TextField.Root size="3" placeholder={t("placeholders.fromFull")}>
                                             <TextField.Slot>
                                                 <MapPin size={18} />
                                             </TextField.Slot>
@@ -137,9 +137,9 @@ function HeroAndSearch() {
 
                                     <Box>
                                         <Text as="div" size="2" weight="bold" mb="2" color="gray" highContrast>
-                                            {t("hero.fields.to")}
+                                            {t("fields.to")}
                                         </Text>
-                                        <TextField.Root size="3" placeholder={t("hero.placeholders.toFull")}>
+                                        <TextField.Root size="3" placeholder={t("placeholders.toFull")}>
                                             <TextField.Slot>
                                                 <MapPin size={18} />
                                             </TextField.Slot>
@@ -148,7 +148,7 @@ function HeroAndSearch() {
 
                                     <Box>
                                         <Text as="div" size="2" weight="bold" mb="2" color="gray" highContrast>
-                                            {t("hero.fields.departureDate")}
+                                            {t("fields.departureDate")}
                                         </Text>
                                         <TextField.Root size="3" type="date">
                                             <TextField.Slot>
@@ -159,7 +159,7 @@ function HeroAndSearch() {
 
                                     <Button size="3" color="amber" variant="solid" style={{ cursor: "pointer" }}>
                                         <Search size={18} />
-                                        {t("hero.actions.searchTrip")}
+                                        {t("actions.searchTrip")}
                                     </Button>
                                 </Grid>
                             </Tabs.Content>
@@ -168,9 +168,9 @@ function HeroAndSearch() {
                                 <Grid columns={{ initial: "1", md: "5" }} gap="4" align="end">
                                     <Box>
                                         <Text as="div" size="2" weight="bold" mb="2" color="gray" highContrast>
-                                            {t("hero.fields.from")}
+                                            {t("fields.from")}
                                         </Text>
-                                        <TextField.Root size="3" placeholder={t("hero.placeholders.fromShort")}>
+                                        <TextField.Root size="3" placeholder={t("placeholders.fromShort")}>
                                             <TextField.Slot>
                                                 <MapPin size={18} />
                                             </TextField.Slot>
@@ -179,9 +179,9 @@ function HeroAndSearch() {
 
                                     <Box>
                                         <Text as="div" size="2" weight="bold" mb="2" color="gray" highContrast>
-                                            {t("hero.fields.to")}
+                                            {t("fields.to")}
                                         </Text>
-                                        <TextField.Root size="3" placeholder={t("hero.placeholders.toShort")}>
+                                        <TextField.Root size="3" placeholder={t("placeholders.toShort")}>
                                             <TextField.Slot>
                                                 <MapPin size={18} />
                                             </TextField.Slot>
@@ -190,7 +190,7 @@ function HeroAndSearch() {
 
                                     <Box>
                                         <Text as="div" size="2" weight="bold" mb="2" color="gray" highContrast>
-                                            {t("hero.fields.departureDate")}
+                                            {t("fields.departureDate")}
                                         </Text>
                                         <TextField.Root size="3" type="date">
                                             <TextField.Slot>
@@ -201,7 +201,7 @@ function HeroAndSearch() {
 
                                     <Box>
                                         <Text as="div" size="2" weight="bold" mb="2" color="gray" highContrast>
-                                            {t("hero.fields.returnDate")}
+                                            {t("fields.returnDate")}
                                         </Text>
                                         <TextField.Root size="3" type="date">
                                             <TextField.Slot>
@@ -212,7 +212,7 @@ function HeroAndSearch() {
 
                                     <Button size="3" color="amber" variant="solid" style={{ cursor: "pointer" }}>
                                         <Search size={18} />
-                                        {t("hero.actions.search")}
+                                        {t("actions.search")}
                                     </Button>
                                 </Grid>
                             </Tabs.Content>
@@ -225,7 +225,7 @@ function HeroAndSearch() {
 }
 
 function Promotions() {
-    const { t } = useTranslation();
+    const { t } = useTranslation("hero");
 
     return (
         <Box py={{ initial: "7", md: "9" }} style={{ backgroundColor: "var(--color-background)" }}>
@@ -234,19 +234,19 @@ function Promotions() {
                     <Box>
                         <Badge size="2" color="orange" variant="soft" mb="3">
                             <Sparkles size={14} />
-                            {t("hero.promotions.badge")}
+                            {t("promotions.badge")}
                         </Badge>
                         <Heading size={{ initial: "6", md: "7" }} weight="bold" mb="2">
-                            {t("hero.promotions.title")}
+                            {t("promotions.title")}
                         </Heading>
                         <Text size="3" color="gray">
-                            {t("hero.promotions.description")}
+                            {t("promotions.description")}
                         </Text>
                     </Box>
 
                     <Button asChild size="3" variant="soft" color="blue" highContrast>
                         <Link href="#" className="no-underline!">
-                            {t("hero.promotions.viewAll")}
+                            {t("promotions.viewAll")}
                             <ArrowRight size={16} />
                         </Link>
                     </Button>
@@ -275,7 +275,7 @@ function Promotions() {
                                     />
                                     <Flex position="absolute" top="0" left="0" p="4" gap="2" wrap="wrap">
                                         <Badge color="crimson" variant="solid" radius="full">
-                                            {t("hero.promotions.hotDeal")}
+                                            {t("promotions.hotDeal")}
                                         </Badge>
                                         <Badge color="orange" variant="soft" radius="full">
                                             {promo.code}
@@ -283,7 +283,7 @@ function Promotions() {
                                     </Flex>
                                     <Box position="absolute" bottom="0" left="0" p="6" pb="2">
                                         <Badge size="1">
-                                            {t("hero.promotions.validityPrefix")} {t(promo.validUntilKey)}
+                                            {t("promotions.validityPrefix")} {t(promo.validUntilKey)}
                                         </Badge>
                                     </Box>
                                 </Box>
@@ -293,14 +293,14 @@ function Promotions() {
                                     {t(promo.titleKey)}
                                 </Heading>
                                 <Text size="3" color="gray">
-                                    {t("hero.promotions.cardDescription")}
+                                    {t("promotions.cardDescription")}
                                 </Text>
                                 <Flex justify="between" align="center" gap="3" wrap="wrap">
                                     <Badge color="blue" variant="soft" size="2" radius="full">
-                                        {t("hero.promotions.saveNow")}
+                                        {t("promotions.saveNow")}
                                     </Badge>
                                     <Button size="2" variant="ghost" color="blue">
-                                        {t("hero.promotions.claimOffer")}
+                                        {t("promotions.claimOffer")}
                                         <ArrowRight size={15} />
                                     </Button>
                                 </Flex>
@@ -314,7 +314,7 @@ function Promotions() {
 }
 
 function PopularRoutes() {
-    const { t } = useTranslation();
+    const { t } = useTranslation("hero");
 
     return (
         <Box py={{ initial: "7", md: "9" }} style={{ backgroundColor: "var(--gray-2)" }}>
@@ -323,19 +323,19 @@ function PopularRoutes() {
                     <Box>
                         <Badge size="2" color="blue" variant="soft" mb="3">
                             <MapPin size={14} />
-                            {t("hero.popularRoutes.badge")}
+                            {t("popularRoutes.badge")}
                         </Badge>
                         <Heading size={{ initial: "6", md: "7" }} weight="bold" mb="2">
-                            {t("hero.popularRoutes.title")}
+                            {t("popularRoutes.title")}
                         </Heading>
                         <Text size="3" color="gray">
-                            {t("hero.popularRoutes.description")}
+                            {t("popularRoutes.description")}
                         </Text>
                     </Box>
 
                     <Button asChild size="3" variant="soft" color="blue">
                         <Link href="#" className="no-underline!">
-                            {t("hero.popularRoutes.exploreMore")}
+                            {t("popularRoutes.exploreMore")}
                             <ArrowRight size={16} />
                         </Link>
                     </Button>
@@ -359,7 +359,7 @@ function PopularRoutes() {
                                         <Box position="relative" className="overflow-hidden">
                                             <img
                                                 src={route.image}
-                                                alt={t("hero.popularRoutes.imageAlt", { from, to })}
+                                                alt={t("popularRoutes.imageAlt", { from, to })}
                                                 className="block h-44 w-full object-cover"
                                             />
                                             <Box
@@ -375,7 +375,7 @@ function PopularRoutes() {
                                                 }}
                                             >
                                                 <Badge color="blue" variant="solid" radius="full" mb="2" size="1">
-                                                    {t("hero.popularRoutes.priceFrom", { price: route.price })}
+                                                    {t("popularRoutes.priceFrom", { price: route.price })}
                                                 </Badge>
                                                 <Heading size="5" weight="bold" style={{ color: "white" }}>
                                                     {from} - {to}
@@ -396,7 +396,7 @@ function PopularRoutes() {
                                         </Flex>
 
                                         <Button size="2" variant="soft" color="blue" className="justify-between!">
-                                            {t("hero.popularRoutes.bookTrip")}
+                                            {t("popularRoutes.bookTrip")}
                                             <ArrowRight size={16} />
                                         </Button>
                                     </Flex>
@@ -411,7 +411,7 @@ function PopularRoutes() {
 }
 
 function Features() {
-    const { t } = useTranslation();
+    const { t } = useTranslation("hero");
 
     return (
         <Box
@@ -425,13 +425,13 @@ function Features() {
                 <Flex direction="column" align="center" gap="3" mb="7">
                     <Badge size="2" color="jade" variant="soft">
                         <ShieldCheck size={14} />
-                        {t("hero.features.badge")}
+                        {t("features.badge")}
                     </Badge>
                     <Heading size={{ initial: "6", md: "7" }} align="center">
-                        {t("hero.features.title")}
+                        {t("features.title")}
                     </Heading>
                     <Text size="3" color="gray" align="center" className="max-w-2xl">
-                        {t("hero.features.description")}
+                        {t("features.description")}
                     </Text>
                 </Flex>
 
@@ -445,12 +445,12 @@ function Features() {
                                 variant="soft"
                                 radius="large"
                             />
-                            <Heading size="5">{t("hero.features.items.choices.title")}</Heading>
+                            <Heading size="5">{t("features.items.choices.title")}</Heading>
                             <Text size="3" color="gray">
-                                {t("hero.features.items.choices.description")}
+                                {t("features.items.choices.description")}
                             </Text>
                             <Badge color="blue" variant="soft" radius="full">
-                                {t("hero.features.items.choices.badge")}
+                                {t("features.items.choices.badge")}
                             </Badge>
                         </Flex>
                     </Card>
@@ -464,12 +464,12 @@ function Features() {
                                 variant="soft"
                                 radius="large"
                             />
-                            <Heading size="5">{t("hero.features.items.quality.title")}</Heading>
+                            <Heading size="5">{t("features.items.quality.title")}</Heading>
                             <Text size="3" color="gray">
-                                {t("hero.features.items.quality.description")}
+                                {t("features.items.quality.description")}
                             </Text>
                             <Badge color="amber" variant="soft" radius="full">
-                                {t("hero.features.items.quality.badge")}
+                                {t("features.items.quality.badge")}
                             </Badge>
                         </Flex>
                     </Card>
@@ -483,12 +483,12 @@ function Features() {
                                 variant="soft"
                                 radius="large"
                             />
-                            <Heading size="5">{t("hero.features.items.support.title")}</Heading>
+                            <Heading size="5">{t("features.items.support.title")}</Heading>
                             <Text size="3" color="gray">
-                                {t("hero.features.items.support.description")}
+                                {t("features.items.support.description")}
                             </Text>
                             <Badge color="green" variant="soft" radius="full">
-                                {t("hero.features.items.support.badge")}
+                                {t("features.items.support.badge")}
                             </Badge>
                         </Flex>
                     </Card>

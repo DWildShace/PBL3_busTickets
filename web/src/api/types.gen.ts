@@ -158,6 +158,10 @@ export type NotificationStatus = 0 | 1;
 
 export type NotificationType = 0 | 1 | 2;
 
+export type OAuthGoogleRequestDto = {
+    idToken: string;
+};
+
 export type Passenger = {
     passengerID?: string;
     userID?: string | null;
@@ -215,7 +219,6 @@ export type RefundStatus = 0 | 1;
 export type RegisterRequestDto = {
     email: string;
     password: string;
-    confirmPassword: string;
     fullName: string;
     phoneNumber?: string | null;
     identityCard?: string | null;
@@ -340,6 +343,7 @@ export type User = {
     passengers?: Array<Passenger> | null;
     seatHolds?: Array<SeatHold> | null;
     notifications?: Array<Notification> | null;
+    fullName?: string | null;
 };
 
 export type Ward = {
@@ -644,6 +648,7 @@ export type UserWritable = {
     passengers?: Array<PassengerWritable> | null;
     seatHolds?: Array<SeatHoldWritable> | null;
     notifications?: Array<NotificationWritable> | null;
+    fullName?: string | null;
 };
 
 export type WardWritable = {
@@ -658,6 +663,20 @@ export type WardWritable = {
     administrativeUnitID?: number | null;
     administrativeUnit?: AdministrativeUnitWritable;
     stations?: Array<StationWritable> | null;
+};
+
+export type PostApiAuthOauthGoogleData = {
+    body?: OAuthGoogleRequestDto;
+    path?: never;
+    query?: never;
+    url: '/api/auth/oauth/google';
+};
+
+export type PostApiAuthOauthGoogleResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
 };
 
 export type PostApiAuthLoginData = {

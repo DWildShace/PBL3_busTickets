@@ -30,3 +30,11 @@ html {
 .toast {
     z-index: 9999999999999;
 }
+
+.gbtn * {
+    width: 100%;
+}
+
+.gbtn iframe {
+    width: 100% !important;
+}

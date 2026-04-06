@@ -1,36 +1,26 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Pbl3.Data;
 using Pbl3.Dtos;
 using Pbl3.Enums;
 using Pbl3.Models;
+using Pbl3.Services;
 
 namespace Pbl3.Controllers
 {
     [ApiController]
     [Route("api/auth")]
-    public class AuthController : ControllerBase
+    public class AuthLegacyController(
+        ApplicationDbContext context,
+        IJwtTokenService jwtTokenService,
+        IPasswordHasher<User> passwordHasher
+    ) : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
-        private readonly IConfiguration _configuration;
-        private readonly IPasswordHasher<User> _passwordHasher;
-
-        public AuthController(
-            ApplicationDbContext context,
-            IConfiguration configuration,
-            IPasswordHasher<User> passwordHasher
-        )
-        {
-            _context = context;
-            _configuration = configuration;
-            _passwordHasher = passwordHasher;
-        }
+        private readonly ApplicationDbContext _context = context;
+        private readonly IJwtTokenService _jwtTokenService = jwtTokenService;
+        private readonly IPasswordHasher<User> _passwordHasher = passwordHasher;
 
         [AllowAnonymous]
         [HttpPost("login")]
@@ -43,15 +33,19 @@ namespace Pbl3.Controllers
                 .FirstOrDefaultAsync(u => u.Email.ToLower() == email);
 
             if (user == null)
-            {
-                return Unauthorized(new { message = "Email hoặc mật khẩu không đúng." });
-            }
+                return Unauthorized(new { message = "auth:msg.invalid_credentials" });
+
+            if (string.IsNullOrEmpty(user.PasswordHash))
+                return StatusCode(
+                    StatusCodes.Status403Forbidden,
+                    new { message = "auth:msg.legacy_login_is_not_allowed" }
+                );
 
             if (!user.IsActive)
             {
                 return StatusCode(
                     StatusCodes.Status403Forbidden,
-                    new { message = "Tài khoản đã bị khóa." }
+                    new { message = "auth:msg.account_is_banned" }
                 );
             }
 
@@ -68,9 +62,7 @@ namespace Pbl3.Controllers
                 verificationResult == PasswordVerificationResult.Failed
                 && !isLegacyPlainTextPassword
             )
-            {
-                return Unauthorized(new { message = "Email hoặc mật khẩu không đúng." });
-            }
+                return Unauthorized(new { message = "auth:msg.invalid_credentials" });
 
             if (
                 verificationResult == PasswordVerificationResult.SuccessRehashNeeded
@@ -81,7 +73,7 @@ namespace Pbl3.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            return Ok(CreateAuthResponse(user));
+            return Ok(_jwtTokenService.CreateAuthResponse(user));
         }
 
         [AllowAnonymous]
@@ -95,17 +87,13 @@ namespace Pbl3.Controllers
 
             var emailExists = await _context.Users.AnyAsync(u => u.Email.ToLower() == email);
             if (emailExists)
-            {
-                return Conflict(new { message = "Email đã được sử dụng." });
-            }
+                return Conflict(new { message = "auth:msg.email_already_in_use" });
 
             var passengerRole = await _context.Roles.FirstOrDefaultAsync(r =>
                 r.RoleName == UserRole.Passenger.ToString()
             );
             if (passengerRole == null)
-            {
-                return Problem("Không tìm thấy role Passenger trong hệ thống.");
-            }
+                return Problem("common:internal_server_error");
 
             var user = new User
             {
@@ -114,6 +102,7 @@ namespace Pbl3.Controllers
                 Role = passengerRole,
                 PasswordHash = string.Empty,
                 Email = email,
+                FullName = fullName,
                 PhoneNumber = phoneNumber,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
@@ -138,66 +127,10 @@ namespace Pbl3.Controllers
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
-            return StatusCode(StatusCodes.Status201Created, CreateAuthResponse(user));
-        }
-
-        private AuthResponseDto CreateAuthResponse(User user)
-        {
-            if (user.Role == null)
-            {
-                throw new InvalidOperationException(
-                    "User role is required to generate an authentication response."
-                );
-            }
-
-            var expiresAt = DateTime.UtcNow.AddDays(7);
-            var claims = new List<Claim>
-            {
-                new(JwtRegisteredClaimNames.Sub, user.UserID.ToString()),
-                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new("email", user.Email),
-                new("role", user.Role.RoleName),
-            };
-
-            var jwtKey =
-                Environment.GetEnvironmentVariable("JWT_KEY")
-                ?? _configuration["Jwt:Key"]
-                ?? throw new InvalidOperationException("JWT key not found.");
-            var jwtIssuer =
-                Environment.GetEnvironmentVariable("JWT_ISSUER")
-                ?? _configuration["Jwt:Issuer"]
-                ?? throw new InvalidOperationException("JWT issuer not found.");
-            var jwtAudience =
-                Environment.GetEnvironmentVariable("JWT_AUDIENCE")
-                ?? _configuration["Jwt:Audience"]
-                ?? throw new InvalidOperationException("JWT audience not found.");
-
-            var credentials = new SigningCredentials(
-                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
-                SecurityAlgorithms.HmacSha256
+            return StatusCode(
+                StatusCodes.Status201Created,
+                _jwtTokenService.CreateAuthResponse(user)
             );
-
-            var token = new JwtSecurityToken(
-                issuer: jwtIssuer,
-                audience: jwtAudience,
-                claims: claims,
-                expires: expiresAt,
-                signingCredentials: credentials
-            );
-
-            return new AuthResponseDto
-            {
-                Token = new JwtSecurityTokenHandler().WriteToken(token),
-                ExpiresAt = expiresAt,
-                User = new UserDto
-                {
-                    Id = user.UserID,
-                    Email = user.Email,
-                    PhoneNumber = user.PhoneNumber ?? string.Empty,
-                    Role = user.Role.RoleName,
-                    IsActive = user.IsActive,
-                },
-            };
         }
 
         private static string? NormalizeOptional(string? value)
