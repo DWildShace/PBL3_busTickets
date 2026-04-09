@@ -7,6 +7,7 @@ using Pbl3.Data;
 
 namespace Pbl3.Controllers.Users
 {
+    [Tags("User")]
     [ApiController]
     [Route("api/user/me")]
     [Authorize(Policy = "UserOnly")]

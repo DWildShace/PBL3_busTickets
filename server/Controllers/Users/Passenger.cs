@@ -4,11 +4,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Pbl3.Data;
-using Pbl3.Enums;
 using Pbl3.Dtos;
+using Pbl3.Enums;
 
 namespace Pbl3.Controllers.Users
 {
+    [Tags("User")]
     [ApiController]
     [Route("api/passenger")]
     [Authorize(Policy = "UserOnly")]

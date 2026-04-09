@@ -11,6 +11,7 @@ using Pbl3.Services;
 
 namespace Pbl3.Controllers.Auth
 {
+    [Tags("Authentication")]
     [ApiController]
     [Route("api/auth/oauth/google")]
     public class AuthGoogleController(
