@@ -8,7 +8,6 @@ using Pbl3.Dtos;
 
 namespace Pbl3.Controllers.Users
 {
-    [Tags("User")]
     [ApiController]
     [Route("api/user/me")]
     [Authorize(Policy = "UserOnly")]
