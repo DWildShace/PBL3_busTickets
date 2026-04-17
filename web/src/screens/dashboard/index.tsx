@@ -1,0 +1,74 @@
+// import { Button } from "@/components/ui/button";
+// import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+// import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AppSidebar } from "@/components/dashboard/layout/app-sidebar";
+import { Header } from "@/components/dashboard/layout/header";
+import { Main } from "@/components/dashboard/layout/main";
+// import { Main } from "@/components/dashboard/layout/main";
+import { TopNav } from "@/components/dashboard/layout/top-nav";
+import { ProfileDropdown } from "@/components/dashboard/profile-dropdown";
+import { ThemeSwitch } from "@/components/dashboard/theme-switch";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { DirectionProvider } from "@/context/dashboard/direction-provider";
+import { LayoutProvider } from "@/context/dashboard/layout-provider";
+import { cn } from "@/lib/utils";
+// import { Analytics } from "./components/analytics";
+// import { Overview } from "./components/overview";
+// import { RecentSales } from "./components/recent-sales";
+
+export function ScreenDashboard({ children }: { children: React.ReactNode }) {
+    return (
+        <>
+            <LayoutProvider>
+                <SidebarProvider>
+                    <DirectionProvider>
+                        <AppSidebar />
+                        <SidebarInset
+                            className={cn(
+                                "@container/content",
+                                "has-data-[layout=fixed]:h-svh",
+                                "peer-data-[variant=inset]:has-data-[layout=fixed]:h-[calc(100svh-(var(--spacing)*4))]",
+                            )}
+                        >
+                            <Header>
+                                <TopNav links={topNav} />
+                                <div className="ms-auto flex items-center space-x-4">
+                                    <ThemeSwitch />
+                                    <ProfileDropdown />
+                                </div>
+                            </Header>
+                            <Main>{children}</Main>
+                        </SidebarInset>
+                    </DirectionProvider>
+                </SidebarProvider>
+            </LayoutProvider>
+        </>
+    );
+}
+
+const topNav = [
+    {
+        title: "Overview",
+        href: "dashboard/overview",
+        isActive: true,
+        disabled: false,
+    },
+    {
+        title: "Customers",
+        href: "dashboard/customers",
+        isActive: false,
+        disabled: true,
+    },
+    {
+        title: "Products",
+        href: "dashboard/products",
+        isActive: false,
+        disabled: true,
+    },
+    {
+        title: "Settings",
+        href: "dashboard/settings",
+        isActive: false,
+        disabled: true,
+    },
+];

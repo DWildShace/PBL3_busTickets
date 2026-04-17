@@ -3,6 +3,7 @@ import ScreenMain from "./screens/Main";
 import { useEffect } from "react";
 import { useStore } from "./stores";
 import { observer } from "mobx-react-lite";
+import RouterAdmin from "./routers/admin";
 
 // eslint-disable-next-line react-refresh/only-export-components
 const App = () => {
@@ -17,6 +18,7 @@ const App = () => {
         <>
             <Routes>
                 <Route path="/*" element={<ScreenMain />} />
+                <Route path="/admin/*" element={<RouterAdmin />} />
             </Routes>
         </>
     );
