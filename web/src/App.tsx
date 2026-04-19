@@ -18,7 +18,9 @@ const App = () => {
         <>
             <Routes>
                 <Route path="/*" element={<ScreenMain />} />
-                <Route path="/admin/*" element={<RouterAdmin />} />
+                {store.user.isAuthenticated && store.user.user?.role.roleName === "SysAdmin" && (
+                    <Route path="/admin/*" element={<RouterAdmin />} />
+                )}
             </Routes>
         </>
     );
