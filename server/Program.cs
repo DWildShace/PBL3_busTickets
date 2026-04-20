@@ -26,6 +26,7 @@ namespace Pbl3
 
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddControllers();
+            builder.Services.AddScoped<ITripSearchService, TripSearchService>();
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy(

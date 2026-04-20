@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Metadata;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +13,7 @@ namespace Pbl3.Controllers
     [ApiController]
     [Route("api/trips/search")]
     [Tags("Search")]
+    [Authorize]
     public class TripsSearchController : ControllerBase
     {
         private readonly ITripSearchService _searchService;
@@ -26,39 +24,28 @@ namespace Pbl3.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Search(
-            [FromQuery] string? origin,
-            [FromQuery] string? destination,
-            [FromQuery] DateTime? departureDate)
+        public async Task<IActionResult> Search([FromQuery] TripSearchQuery query)
         {
-            if (string.IsNullOrWhiteSpace(origin) || string.IsNullOrWhiteSpace(destination))
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            if (query.MinPrice > query.MaxPrice)
             {
-                return BadRequest(new { message = "Origin and destination are required." });
+                return BadRequest(new
+                {
+                    message = "MinPrice cannot be greater than MaxPrice."
+                });
             }
 
-            if (departureDate == null)
-            {
-                return BadRequest(new { message = "Departure date is required." });
-            }
+            var result = await _searchService.SearchTripsAsync(query);
 
-            // Treat the incoming date as UTC for safe comparison with PostgreSQL timestamptz.
-            var departureDateUtc = DateTime.SpecifyKind(departureDate.Value, DateTimeKind.Utc);
-
-            try
-            {
-                var results = await _searchService.SearchTripsAsync(origin, destination, departureDateUtc);
-                return Ok(results);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "An error occurred while searching for trips.", details = ex.Message });
-            }
+            return Ok(result);
         }
     }
 
     public interface ITripSearchService
     {
-        Task<List<TripSearchDto>> SearchTripsAsync(string origin, string destination, DateTime departureDateUtc);
+        Task<TripSearchResult> SearchTripsAsync(TripSearchQuery request);
     }
 
     public class TripSearchService : ITripSearchService
@@ -70,128 +57,180 @@ namespace Pbl3.Controllers
             _context = context;
         }
 
-        public async Task<List<TripSearchDto>> SearchTripsAsync(string origin, string destination, DateTime departureDateUtc)
+        public async Task<TripSearchResult> SearchTripsAsync(TripSearchQuery request)
         {
-            var nowUtc = DateTime.UtcNow;
-            var originFilter = origin?.Trim() ?? string.Empty;
-            var destinationFilter = destination?.Trim() ?? string.Empty;
+            var origin = request.Origin.Trim();
+            var destination = request.Destination.Trim();
+            var searchDate = request.DepartureDate.Date;
+searchDate = DateTime.SpecifyKind(searchDate, DateTimeKind.Utc);
 
-            if (string.IsNullOrEmpty(originFilter) || string.IsNullOrEmpty(destinationFilter))
+            var originPattern = EscapeLikePattern(origin);
+            var destinationPattern = EscapeLikePattern(destination);
+
+            IQueryable<Models.Trip> query = _context.Trips
+                .AsNoTracking()
+                .Where(t => t.Status != TripStatus.Cancelled)
+                .Where(t => t.Route != null)
+                .Where(t => t.Route!.BusCompany != null)
+                .Where(t => t.BusType != null)
+                .Where(t => t.DepartureTime.Date == searchDate);
+
+            // Search origin + destination
+            query = query.Where(t =>
+                t.Route!.RouteName != null &&
+                EF.Functions.ILike(t.Route.RouteName, $"%{originPattern}%") &&
+                EF.Functions.ILike(t.Route.RouteName, $"%{destinationPattern}%"));
+
+            // Filter bus company
+            if (request.BusCompanyIds?.Any() == true)
             {
-                return new List<TripSearchDto>();
+                query = query.Where(t =>
+                    request.BusCompanyIds.Contains(t.Route!.CompanyID));
             }
 
-            var dayStartUtc = departureDateUtc.Date;
-            var dayEndUtc = dayStartUtc.AddDays(1);
+            // Filter seat type
+            if (request.SeatTypes?.Any() == true)
+            {
+                query = query.Where(t =>
+                    request.SeatTypes.Contains(t.BusType!.Name));
+            }
 
-            // Build search patterns for case-insensitive route matching in PostgreSQL.
-            var originPattern = EscapeLikePattern(originFilter);
-            var destinationPattern = EscapeLikePattern(destinationFilter);
+            // Filter price
+            if (request.MinPrice.HasValue)
+            {
+                query = query.Where(t =>
+                    t.Tickets.Any(x =>
+                        x.Status != TicketStatus.Cancelled &&
+                        x.FinalPrice >= request.MinPrice.Value));
+            }
 
-            var candidateTrips = await _context.Trips
-                .AsNoTracking()
-                .Where(t => t.Route != null && t.Route.RouteName != null)
-                .Where(t => t.Route.BusCompany != null)
-                .Where(t => t.BusType != null)
-                //.Where(t => t.DepartureTime >= nowUtc)
-                //.Where(t => t.DepartureTime >= dayStartUtc && t.DepartureTime < dayEndUtc)
-                .Where(t => t.DepartureTime.Date == departureDateUtc.Date)
-                .Where(t => EF.Functions.ILike(t.Route.RouteName, $"%{originPattern}%")
-                    || EF.Functions.ILike(t.Route.RouteName, $"%{destinationPattern}%"))
-                .Select(t => new
-                {
-                    t.TripID,
-                    t.DepartureTime,
-                    RouteName = t.Route!.RouteName,
-                    CompanyName = t.Route.BusCompany!.Name,
-                    TotalSeats = t.BusType!.TotalSeats,
-                    SoldSeatCount = t.Tickets.Count(ticket => ticket.Status != TicketStatus.Cancelled),
-                    Price = t.Tickets
-                        .Where(ticket => ticket.Status != TicketStatus.Cancelled)
-                        .OrderBy(ticket => ticket.FinalPrice)
-                        .Select(ticket => (decimal?)ticket.FinalPrice)
-                        .FirstOrDefault()
-                })
-                .Where(t => t.SoldSeatCount < t.TotalSeats)
+            if (request.MaxPrice.HasValue)
+            {
+                query = query.Where(t =>
+                    t.Tickets.Any(x =>
+                        x.Status != TicketStatus.Cancelled &&
+                        x.FinalPrice <= request.MaxPrice.Value));
+            }
+
+            // Filter time range
+            if (request.TimeRanges?.Any() == true)
+            {
+                query = query.Where(t =>
+                    request.TimeRanges.Any(range =>
+
+                        (range == TimeRangeFilter.EarlyMorning &&
+                         t.DepartureTime.TimeOfDay >= TimeSpan.Zero &&
+                         t.DepartureTime.TimeOfDay < TimeSpan.FromHours(6))
+
+                        ||
+
+                        (range == TimeRangeFilter.Morning &&
+                         t.DepartureTime.TimeOfDay >= TimeSpan.FromHours(6) &&
+                         t.DepartureTime.TimeOfDay < TimeSpan.FromHours(12))
+
+                        ||
+
+                        (range == TimeRangeFilter.Afternoon &&
+                         t.DepartureTime.TimeOfDay >= TimeSpan.FromHours(12) &&
+                         t.DepartureTime.TimeOfDay < TimeSpan.FromHours(18))
+
+                        ||
+
+                        (range == TimeRangeFilter.Evening &&
+                         t.DepartureTime.TimeOfDay >= TimeSpan.FromHours(18) &&
+                         t.DepartureTime.TimeOfDay < TimeSpan.FromHours(24))
+                    ));
+            }
+
+            // Projection
+            var resultQuery = query.Select(t => new TripSearchDto
+            {
+                TripId = t.TripID,
+
+                BusCompanyName = t.Route!.BusCompany!.Name,
+
+                Origin = t.Route.RouteName.Split('-')[0].Trim(),
+
+                Destination = t.Route.RouteName.Contains("-")
+                    ? t.Route.RouteName.Split('-')[1].Trim()
+                    : "",
+
+                DepartureTime = t.DepartureTime,
+
+                Price = t.Tickets
+                    .Where(x => x.Status != TicketStatus.Cancelled)
+                    .OrderBy(x => x.FinalPrice)
+                    .Select(x => x.FinalPrice)
+                    .FirstOrDefault(),
+
+                AvailableSeats =
+                    t.BusType!.TotalSeats -
+                    t.Tickets.Count(x => x.Status != TicketStatus.Cancelled),
+
+                Score = t.Reviews.Any()
+                    ? t.Reviews.Average(r => r.RatingScore)
+                    : 0
+            });
+
+            // Total count
+            var total = await resultQuery.CountAsync();
+
+            // Sorting
+            resultQuery = request.SortBy switch
+            {
+                TripSortBy.EarliestDeparture =>
+                    resultQuery.OrderBy(x => x.DepartureTime),
+
+                TripSortBy.LatestDeparture =>
+                    resultQuery.OrderByDescending(x => x.DepartureTime),
+
+                TripSortBy.HighestRating =>
+                    resultQuery.OrderByDescending(x => x.Score),
+
+                TripSortBy.PriceAsc =>
+                    resultQuery.OrderBy(x => x.Price),
+
+                TripSortBy.PriceDesc =>
+                    resultQuery.OrderByDescending(x => x.Price),
+
+                _ =>
+                    resultQuery
+                        .OrderByDescending(x => x.Score)
+                        .ThenBy(x => x.DepartureTime)
+            };
+
+            // Paging
+            var page = request.Page <= 0 ? 1 : request.Page;
+            var pageSize = request.PageSize <= 0 ? 20 : request.PageSize;
+
+            var items = await resultQuery
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
-            // Normalize search terms once, then rank results by relevance.
-            var normalizedOrigin = NormalizeText(originFilter);
-            var normalizedDestination = NormalizeText(destinationFilter);
-
-            var scoredTrips = candidateTrips
-                .Select(t =>
-                {
-                    var routeScore = CalculateRouteScore(t.RouteName, normalizedOrigin, normalizedDestination);
-                    if (routeScore == 0)
-                    {
-                        return null;
-                    }
-
-                    var (parsedOrigin, parsedDestination) = ParseRouteStops(t.RouteName);
-                    var availableSeats = Math.Max(0, t.TotalSeats - t.SoldSeatCount);
-                    var score = routeScore;
-
-                    return new TripSearchDto
-                    {
-                        TripId = t.TripID,
-                        BusCompanyName = t.CompanyName,
-                        Origin = parsedOrigin,
-                        Destination = parsedDestination,
-                        DepartureTime = DateTime.SpecifyKind(t.DepartureTime, DateTimeKind.Utc),
-                        Price = t.Price ?? 0m,
-                        AvailableSeats = availableSeats,
-                        Score = score
-                    };
-                })
-                .Where(result => result != null)
-                .Cast<TripSearchDto>()
-                .OrderByDescending(result => result.Score)
-                .ThenBy(result => result.DepartureTime)
-                .Take(20)
-                .ToList();
-
-            return scoredTrips;
+            return new TripSearchResult
+            {
+                TotalResults = total,
+                Items = items
+            };
         }
 
-        private static int CalculateRouteScore(string routeName, string normalizedOrigin, string normalizedDestination)
+        // =========================
+        // Helpers
+        // =========================
+
+        private static string EscapeLikePattern(string value)
         {
-            var normalizedRouteName = NormalizeText(routeName);
-            var exactRoute = $"{normalizedOrigin} - {normalizedDestination}";
-
-            if (normalizedRouteName.Equals(exactRoute, StringComparison.Ordinal))
-            {
-                return 100;
-            }
-
-            var originMatches = normalizedRouteName.Contains(normalizedOrigin, StringComparison.Ordinal);
-            var destinationMatches = normalizedRouteName.Contains(normalizedDestination, StringComparison.Ordinal);
-
-            if (originMatches && destinationMatches)
-            {
-                return 50;
-            }
-
-            return originMatches || destinationMatches ? 25 : 0;
-        }
-
-        private static (string Origin, string Destination) ParseRouteStops(string routeName)
-        {
-            var parts = routeName.Split('-', StringSplitOptions.RemoveEmptyEntries)
-                .Select(part => part.Trim())
-                .ToArray();
-
-            return parts.Length >= 2
-                ? (parts[0], parts[1])
-                : (routeName.Trim(), string.Empty);
+            return value
+                .Replace("\\", "\\\\")
+                .Replace("%", "\\%")
+                .Replace("_", "\\_");
         }
 
         private static string NormalizeText(string text)
         {
             if (string.IsNullOrWhiteSpace(text))
-            {
                 return string.Empty;
-            }
 
             var normalized = text.Normalize(NormalizationForm.FormD);
             var builder = new StringBuilder();
@@ -199,18 +238,15 @@ namespace Pbl3.Controllers
             foreach (var c in normalized)
             {
                 var unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
+
                 if (unicodeCategory != UnicodeCategory.NonSpacingMark)
-                {
                     builder.Append(c);
-                }
             }
 
-            return builder.ToString().Normalize(NormalizationForm.FormC).ToLowerInvariant();
-        }
-
-        private static string EscapeLikePattern(string value)
-        {
-            return value.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
+            return builder
+                .ToString()
+                .Normalize(NormalizationForm.FormC)
+                .ToLowerInvariant();
         }
     }
 }
