@@ -4,6 +4,15 @@ export type ClientOptions = {
     baseUrl: 'http://localhost:5026' | (string & {});
 };
 
+export type AdminCreateUserDto = {
+    email: string;
+    password: string;
+    fullName: string;
+    phoneNumber?: string | null;
+    role: string;
+    isActive?: boolean;
+};
+
 export type AdminDashboardDailyStatDto = {
     date?: string | null;
     label?: string | null;
@@ -74,6 +83,14 @@ export type AdminDashboardTopRouteDto = {
     routeName?: string | null;
     ticketsSold?: number;
     revenue?: number;
+};
+
+export type AdminUpdateUserDto = {
+    email: string;
+    fullName: string;
+    phoneNumber?: string | null;
+    role: string;
+    isActive?: boolean;
 };
 
 export type AuthResponseDto = {
@@ -1036,6 +1053,22 @@ export type PatchApiAdminSystemBusTypesByBusTypeIdAmenitiesResponses = {
     200: unknown;
 };
 
+export type DeleteApiAdminSystemUsersByUserIdData = {
+    body?: never;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/admin/system/users/{userId}';
+};
+
+export type DeleteApiAdminSystemUsersByUserIdResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
 export type GetApiAdminSystemUsersByUserIdData = {
     body?: never;
     path: {
@@ -1046,6 +1079,22 @@ export type GetApiAdminSystemUsersByUserIdData = {
 };
 
 export type GetApiAdminSystemUsersByUserIdResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type PutApiAdminSystemUsersByUserIdData = {
+    body?: AdminUpdateUserDto;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/admin/system/users/{userId}';
+};
+
+export type PutApiAdminSystemUsersByUserIdResponses = {
     /**
      * OK
      */
@@ -1100,6 +1149,42 @@ export type GetApiAdminSystemDashboardOverviewResponses = {
 };
 
 export type GetApiAdminSystemDashboardOverviewResponse = GetApiAdminSystemDashboardOverviewResponses[keyof GetApiAdminSystemDashboardOverviewResponses];
+
+export type GetApiAdminSystemUsersData = {
+    body?: never;
+    path?: never;
+    query?: {
+        q?: string;
+        roles?: Array<string>;
+        statuses?: Array<string>;
+        role?: string;
+        isActive?: boolean;
+        page?: number;
+        pageSize?: number;
+    };
+    url: '/api/admin/system/users';
+};
+
+export type GetApiAdminSystemUsersResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type PostApiAdminSystemUsersData = {
+    body?: AdminCreateUserDto;
+    path?: never;
+    query?: never;
+    url: '/api/admin/system/users';
+};
+
+export type PostApiAdminSystemUsersResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
 
 export type GetApiUserMeData = {
     body?: never;
