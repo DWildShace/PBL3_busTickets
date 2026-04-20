@@ -1,21 +1,29 @@
-import { Link } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
     DropdownMenuContent,
-    DropdownMenuGroup,
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
-    DropdownMenuShortcut,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useStore } from "@/stores";
 import { getGravatarUrl } from "@/utils/gravatar";
+import useDialog from "@/shared/dialog/Dialog";
+import { useTranslation } from "react-i18next";
 
 export function ProfileDropdown() {
     const store = useStore();
+    const dialog = useDialog();
+    const { t } = useTranslation("header");
+    const askLogoutConfirmation = () => {
+        dialog.confirm({
+            title: t("logout"),
+            content: t("logout_confirmation"),
+            onConfirm: () => store.user.logout(),
+        });
+    };
     return (
         <>
             <DropdownMenu modal={false}>
@@ -38,31 +46,8 @@ export function ProfileDropdown() {
                         </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuGroup>
-                        <DropdownMenuItem asChild>
-                            <Link to="/settings">
-                                Profile
-                                <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
-                            </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                            <Link to="/settings">
-                                Billing
-                                <DropdownMenuShortcut>⌘B</DropdownMenuShortcut>
-                            </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                            <Link to="/settings">
-                                Settings
-                                <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
-                            </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>New Team</DropdownMenuItem>
-                    </DropdownMenuGroup>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem variant="destructive">
-                        Sign out
-                        <DropdownMenuShortcut className="text-current">⇧⌘Q</DropdownMenuShortcut>
+                    <DropdownMenuItem variant="destructive" onClick={askLogoutConfirmation}>
+                        Đăng xuất
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>

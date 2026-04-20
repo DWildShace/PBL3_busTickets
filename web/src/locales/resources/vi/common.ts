@@ -10,6 +10,7 @@ const I18nCommon = {
     page_not_found: "Không tìm thấy trang",
     page_not_found_description: "Trang bạn đang tìm kiếm không tồn tại hoặc đã được di chuyển.",
     back_to_home: "Quay về trang chủ",
+    loading_dashboard: "Đang tải bảng điều khiển...",
 };
 
 export default I18nCommon;

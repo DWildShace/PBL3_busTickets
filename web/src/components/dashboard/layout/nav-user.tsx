@@ -1,10 +1,8 @@
-import { Link } from "react-router-dom";
-import { BadgeCheck, Bell, ChevronsUpDown, CreditCard, LogOut, Sparkles } from "lucide-react";
+import { ChevronsUpDown, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
     DropdownMenu,
     DropdownMenuContent,
-    DropdownMenuGroup,
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
@@ -13,10 +11,22 @@ import {
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { useStore } from "@/stores";
 import { getGravatarUrl } from "@/utils/gravatar";
+import useDialog from "@/shared/dialog/Dialog";
+import { useTranslation } from "react-i18next";
 
 export function NavUser() {
+    const { t } = useTranslation("header");
+    const dialog = useDialog();
     const store = useStore();
     const { isMobile } = useSidebar();
+
+    const askLogoutConfirmation = () => {
+        dialog.confirm({
+            title: t("logout"),
+            content: t("logout_confirmation"),
+            onConfirm: () => store.user.logout(),
+        });
+    };
 
     return (
         <>
@@ -74,37 +84,9 @@ export function NavUser() {
                                 </div>
                             </DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            <DropdownMenuGroup>
-                                <DropdownMenuItem>
-                                    <Sparkles />
-                                    Upgrade to Pro
-                                </DropdownMenuItem>
-                            </DropdownMenuGroup>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuGroup>
-                                <DropdownMenuItem asChild>
-                                    <Link to="/settings/account">
-                                        <BadgeCheck />
-                                        Account
-                                    </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem asChild>
-                                    <Link to="/settings">
-                                        <CreditCard />
-                                        Billing
-                                    </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem asChild>
-                                    <Link to="/settings/notifications">
-                                        <Bell />
-                                        Notifications
-                                    </Link>
-                                </DropdownMenuItem>
-                            </DropdownMenuGroup>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem variant="destructive">
+                            <DropdownMenuItem variant="destructive" onSelect={askLogoutConfirmation}>
                                 <LogOut />
-                                Sign out
+                                Đăng xuất
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>

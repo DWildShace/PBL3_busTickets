@@ -4,6 +4,78 @@ export type ClientOptions = {
     baseUrl: 'http://localhost:5026' | (string & {});
 };
 
+export type AdminDashboardDailyStatDto = {
+    date?: string | null;
+    label?: string | null;
+    soldTickets?: number;
+    cancelledTickets?: number;
+    revenue?: number;
+};
+
+export type AdminDashboardKpiDto = {
+    current?: number;
+    previous?: number;
+    delta?: number;
+    deltaPercent?: number;
+};
+
+export type AdminDashboardMonthlyStatDto = {
+    label?: string | null;
+    monthKey?: string | null;
+    revenue?: number;
+    soldTickets?: number;
+};
+
+export type AdminDashboardOverviewDto = {
+    currentMonthLabel?: string | null;
+    lastUpdatedAt?: string;
+    revenue?: AdminDashboardKpiDto;
+    soldTickets?: AdminDashboardKpiDto;
+    totalTrips?: AdminDashboardKpiDto;
+    newUsers?: AdminDashboardKpiDto;
+    snapshot?: AdminDashboardSnapshotDto;
+    monthlyStats?: Array<AdminDashboardMonthlyStatDto> | null;
+    dailyStats?: Array<AdminDashboardDailyStatDto> | null;
+    topRoutes?: Array<AdminDashboardTopRouteDto> | null;
+    recentBookings?: Array<AdminDashboardRecentBookingDto> | null;
+    ticketStatusBreakdown?: Array<AdminDashboardStatusStatDto> | null;
+    upgradeRequestBreakdown?: Array<AdminDashboardStatusStatDto> | null;
+};
+
+export type AdminDashboardRecentBookingDto = {
+    bookingId?: string;
+    contactName?: string | null;
+    contactEmail?: string | null;
+    totalAmount?: number;
+    ticketCount?: number;
+    routeName?: string | null;
+    status?: string | null;
+    createdAt?: string;
+};
+
+export type AdminDashboardSnapshotDto = {
+    totalUsers?: number;
+    totalCompanies?: number;
+    approvedCompanies?: number;
+    totalRoutes?: number;
+    activeTripsToday?: number;
+    totalTripsThisMonth?: number;
+    pendingUpgradeRequests?: number;
+    cancellationRatePercent?: number;
+    averageTicketPrice?: number;
+};
+
+export type AdminDashboardStatusStatDto = {
+    label?: string | null;
+    value?: number;
+};
+
+export type AdminDashboardTopRouteDto = {
+    routeName?: string | null;
+    ticketsSold?: number;
+    revenue?: number;
+};
+
 export type AuthResponseDto = {
     token: string | null;
     expiresAt?: string;
@@ -46,8 +118,8 @@ export type CreateTripDto = {
 export type DistrictResponse = {
     id?: string | null;
     name?: string | null;
-    wards?: Array<WardResponse> | null;
     name_en?: string | null;
+    wards?: Array<WardResponse> | null;
 };
 
 export type InforBusCompany = {
@@ -104,8 +176,8 @@ export type ProblemDetails = {
 export type ProvinceResponse = {
     id?: string | null;
     name?: string | null;
-    districts?: Array<DistrictResponse> | null;
     name_en?: string | null;
+    districts?: Array<DistrictResponse> | null;
 };
 
 export type RegisterRequestDto = {
@@ -1012,6 +1084,22 @@ export type GetApiAdminSystemStatsMonthlyResponses = {
      */
     200: unknown;
 };
+
+export type GetApiAdminSystemDashboardOverviewData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/admin/system/dashboard/overview';
+};
+
+export type GetApiAdminSystemDashboardOverviewResponses = {
+    /**
+     * OK
+     */
+    200: AdminDashboardOverviewDto;
+};
+
+export type GetApiAdminSystemDashboardOverviewResponse = GetApiAdminSystemDashboardOverviewResponses[keyof GetApiAdminSystemDashboardOverviewResponses];
 
 export type GetApiUserMeData = {
     body?: never;

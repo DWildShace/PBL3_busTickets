@@ -1,7 +1,7 @@
 import { useLayout } from "@/context/dashboard/layout-provider";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail } from "@/components/ui/sidebar";
 import { AppTitle } from "./app-title";
-import { sidebarData } from "./data/sidebar-data";
+import { adminSidebarData } from "./data/sidebar-data";
 import { NavGroup } from "./nav-group";
 import { NavUser } from "./nav-user";
 // import { TeamSwitcher } from "./team-switcher";
@@ -18,7 +18,7 @@ export function AppSidebar() {
                 <AppTitle />
             </SidebarHeader>
             <SidebarContent>
-                {sidebarData.navGroups.map((props) => (
+                {adminSidebarData.navGroups.map((props) => (
                     <NavGroup key={props.title} {...props} />
                 ))}
             </SidebarContent>
