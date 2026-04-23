@@ -21,6 +21,9 @@ namespace Pbl3.Models
         public DateTime ArrivalTime { get; set; }
         public TripStatus Status { get; set; }
 
+        public string? CancellationPolicy { get; set; }
+        public string? Notes { get; set; }
+
         public ICollection<SeatHold> SeatHolds { get; set; } = new List<SeatHold>();
         public ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
         public ICollection<Review> Reviews { get; set; } = new List<Review>();

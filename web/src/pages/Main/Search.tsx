@@ -1,5 +1,6 @@
 import { getApiTripsSearch } from "@/api";
 import type { ProblemDetails, TimeRangeFilter, TripSearchItemDto, TripSearchResult, TripSortBy } from "@/api";
+import TripDetailDialog from "@/components/TripDetailDialog";
 import { observer } from "mobx-react-lite";
 import {
     Badge,
@@ -11,7 +12,6 @@ import {
     Flex,
     Grid,
     Heading,
-    Link,
     RadioGroup,
     Separator,
     Skeleton,
@@ -370,7 +370,7 @@ function FilterSidebar({
     );
 }
 
-function TicketCard({ ticket }: { ticket: TripSearchItemDto }) {
+function TicketCard({ ticket, onShowDetail }: { ticket: TripSearchItemDto; onShowDetail: (tripId: string) => void }) {
     const busCompanyName = ticket.busCompanyName ?? "--";
     const rating = ticket.rating ?? 0;
     const reviewCount = ticket.reviewCount ?? 0;
@@ -525,9 +525,17 @@ function TicketCard({ ticket }: { ticket: TripSearchItemDto }) {
                         <Button size="3" color="amber" variant="solid" style={{ cursor: "pointer", width: "100%" }}>
                             Chọn chuyến
                         </Button>
-                        <Link href="#" size="2" color="blue">
+                        <Button
+                            variant="ghost"
+                            size="2"
+                            style={{ cursor: "pointer", width: "100%" }}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onShowDetail(ticket.tripId ?? "");
+                            }}
+                        >
                             Thông tin chi tiết <ChevronDown size={14} className="inline align-middle" />
-                        </Link>
+                        </Button>
                     </Flex>
                 </Flex>
             </Grid>
@@ -560,6 +568,7 @@ const PageMainSearch = observer(() => {
     const [result, setResult] = useState<TripSearchResult | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
 
     useEffect(() => {
         const timeout = window.setTimeout(() => {
@@ -741,7 +750,11 @@ const PageMainSearch = observer(() => {
                             ) : result && result.items?.length ? (
                                 <Flex direction="column" gap="4">
                                     {result.items.map((ticket) => (
-                                        <TicketCard key={ticket.tripId} ticket={ticket} />
+                                        <TicketCard
+                                            key={ticket.tripId}
+                                            ticket={ticket}
+                                            onShowDetail={(tripId) => setSelectedTripId(tripId)}
+                                        />
                                     ))}
                                 </Flex>
                             ) : (
@@ -761,6 +774,8 @@ const PageMainSearch = observer(() => {
                     </Grid>
                 </Container>
             </Box>
+
+            <TripDetailDialog tripId={selectedTripId} onClose={() => setSelectedTripId(null)} />
         </Box>
     );
 });

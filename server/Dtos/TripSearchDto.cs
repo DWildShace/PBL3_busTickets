@@ -63,6 +63,21 @@ namespace Pbl3.Dtos
         public TripSearchPriceRangeDto? PriceRange { get; set; }
     }
 
+    public class TripRouteStopDto
+    {
+        public Guid StationId { get; set; }
+
+        public string StationName { get; set; } = default!;
+
+        public int StopOrder { get; set; }
+
+        public bool IsPickUp { get; set; }
+
+        public bool IsDropOff { get; set; }
+
+        public int DurationFromStart { get; set; }
+    }
+
     public class TripSearchItemDto
     {
         public Guid TripId { get; set; }
@@ -98,6 +113,10 @@ namespace Pbl3.Dtos
         public List<string> Amenities { get; set; } = new();
 
         public string? ImageUrl { get; set; }
+
+        public List<TripRouteStopDto> PickupStops { get; set; } = [];
+
+        public List<TripRouteStopDto> DropoffStops { get; set; } = [];
     }
 
     public enum TripSortBy

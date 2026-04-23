@@ -216,6 +216,53 @@ export type TicketStatus = 0 | 1 | 2;
 
 export type TimeRangeFilter = 1 | 2 | 3 | 4;
 
+export type TripDetailDto = {
+    tripId?: string;
+    routeId?: string;
+    companyId?: string;
+    busCompanyName?: string | null;
+    busTypeName?: string | null;
+    busTypeDescription?: string | null;
+    routeName?: string | null;
+    departureDate?: string;
+    departureTime?: string;
+    arrivalTime?: string;
+    durationMinutes?: number;
+    totalSeats?: number;
+    availableSeats?: number;
+    lowestPrice?: number;
+    rating?: number;
+    reviewCount?: number;
+    amenities?: Array<string> | null;
+    images?: Array<string> | null;
+    pickupStops?: Array<TripDetailRouteStopDto> | null;
+    dropoffStops?: Array<TripDetailRouteStopDto> | null;
+    cancellationPolicy?: string | null;
+    notes?: string | null;
+};
+
+export type TripDetailRouteStopDto = {
+    stationId?: string;
+    stationName?: string | null;
+    provinceCode?: string | null;
+    districtCode?: string | null;
+    wardCode?: string | null;
+    addressDetail?: string | null;
+    stopOrder?: number;
+    isPickUp?: boolean;
+    isDropOff?: boolean;
+    durationFromStart?: number;
+};
+
+export type TripRouteStopDto = {
+    stationId?: string;
+    stationName?: string | null;
+    stopOrder?: number;
+    isPickUp?: boolean;
+    isDropOff?: boolean;
+    durationFromStart?: number;
+};
+
 export type TripSearchAmenityFilterOptionDto = {
     value?: string | null;
     count?: number;
@@ -252,6 +299,8 @@ export type TripSearchItemDto = {
     reviewCount?: number;
     amenities?: Array<string> | null;
     imageUrl?: string | null;
+    pickupStops?: Array<TripRouteStopDto> | null;
+    dropoffStops?: Array<TripRouteStopDto> | null;
 };
 
 export type TripSearchLocationSummaryDto = {
@@ -1302,6 +1351,33 @@ export type PostApiAdminSystemUsersResponses = {
      */
     200: unknown;
 };
+
+export type GetApiTripsByTripIdData = {
+    body?: never;
+    path: {
+        tripId: string;
+    };
+    query?: never;
+    url: '/api/trips/{tripId}';
+};
+
+export type GetApiTripsByTripIdErrors = {
+    /**
+     * Not Found
+     */
+    404: ProblemDetails;
+};
+
+export type GetApiTripsByTripIdError = GetApiTripsByTripIdErrors[keyof GetApiTripsByTripIdErrors];
+
+export type GetApiTripsByTripIdResponses = {
+    /**
+     * OK
+     */
+    200: TripDetailDto;
+};
+
+export type GetApiTripsByTripIdResponse = GetApiTripsByTripIdResponses[keyof GetApiTripsByTripIdResponses];
 
 export type GetApiUserMeData = {
     body?: never;
