@@ -168,11 +168,11 @@ function SearchSummary({ result, onChangeSearch }: { result: TripSearchResult; o
             <Container size="4" px="4">
                 <Flex justify="between" align="center" wrap="wrap" gap="3">
                     <Flex align="center" gap="3" wrap="wrap">
-                        <Text size="4" weight="bold" color="blue" highContrast>
+                        <Heading size="4" weight="bold" color="blue" highContrast>
                             {result.summary?.origin?.displayName || "--"}{" "}
                             <ArrowRight size={16} className="inline-block mx-1" />{" "}
                             {result.summary?.destination?.displayName || "--"}
-                        </Text>
+                        </Heading>
                         <Separator orientation="vertical" size="1" color="blue" className="hidden sm:block" />
                         <Text size="3" color="blue">
                             {result.summary?.departureDate ? formatDateLabel(result.summary.departureDate) : "--"}
@@ -350,7 +350,7 @@ function TicketCard({ ticket }: { ticket: TripSearchItemDto }) {
                         {ticket.imageUrl ? (
                             <img
                                 src={ticket.imageUrl}
-                                alt={ticket.busCompanyName}
+                                alt={ticket.busCompanyName ?? ""}
                                 style={{
                                     width: "100%",
                                     height: "140px",
@@ -485,7 +485,7 @@ function TicketCard({ ticket }: { ticket: TripSearchItemDto }) {
                     </Box>
 
                     <Flex direction="column" align="end" gap="2">
-                        <Text size="2" color={ticket.availableSeats < 5 ? "orange" : "green"}>
+                        <Text size="2" color={ticket.availableSeats && ticket.availableSeats < 5 ? "orange" : "green"}>
                             Còn {ticket.availableSeats} chỗ trống
                         </Text>
                         <Button size="3" color="amber" variant="solid" style={{ cursor: "pointer", width: "100%" }}>
@@ -689,18 +689,6 @@ const PageMainSearch = observer(() => {
                                     ? `Đặt mua vé xe đi ${result.summary?.destination?.displayName ?? ""} từ ${result.summary?.origin?.displayName ?? ""}`
                                     : "Đang tìm chuyến xe phù hợp"}
                             </Heading>
-                            <Card
-                                size="1"
-                                mb="4"
-                                style={{ backgroundColor: "var(--blue-3)", border: "1px solid var(--blue-5)" }}
-                            >
-                                <Flex justify="center" p="2">
-                                    <Text size="3" color="blue" weight="bold">
-                                        🎉 Nhập mã <Badge color="amber">VNPAY50K</Badge> giảm ngay 50K khi thanh toán
-                                        qua VNPAY
-                                    </Text>
-                                </Flex>
-                            </Card>
 
                             {loading ? (
                                 <SearchPageSkeleton />
@@ -725,10 +713,10 @@ const PageMainSearch = observer(() => {
                             ) : (
                                 <Card size="3">
                                     <Flex direction="column" gap="3" align="center" py="6">
-                                        <Search size={24} />
-                                        <Text size="4" weight="bold">
+                                        <Search size={96} color="gray" />
+                                        <Heading size="6" weight="bold">
                                             Không tìm thấy chuyến phù hợp
-                                        </Text>
+                                        </Heading>
                                         <Text size="2" color="gray" align="center">
                                             Hãy thử thay đổi điểm đón, điểm trả hoặc bộ lọc để xem thêm kết quả.
                                         </Text>

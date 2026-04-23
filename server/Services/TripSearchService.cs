@@ -41,28 +41,34 @@ namespace Pbl3.Services
                 .Where(t => t.Route != null && t.Route.IsActive)
                 .Where(t => t.Route!.BusCompany != null && t.Route.BusCompany.IsApproved)
                 .Where(t => t.BusType != null)
-                .Where(t =>
-                    t.Route!.DepartureProvinceCode == request.FromProvinceCode
-                    && (
-                        string.IsNullOrWhiteSpace(request.FromDistrictCode)
-                        || t.Route.DepartureDistrictCode == request.FromDistrictCode
-                    )
-                    && (
-                        string.IsNullOrWhiteSpace(request.FromWardCode)
-                        || t.Route.DepartureWardCode == request.FromWardCode
-                    )
-                )
-                .Where(t =>
-                    t.Route!.ArrivalProvinceCode == request.ToProvinceCode
-                    && (
-                        string.IsNullOrWhiteSpace(request.ToDistrictCode)
-                        || t.Route.ArrivalDistrictCode == request.ToDistrictCode
-                    )
-                    && (
-                        string.IsNullOrWhiteSpace(request.ToWardCode)
-                        || t.Route.ArrivalWardCode == request.ToWardCode
-                    )
+                .Where(t => t.Route!.DepartureProvinceCode == request.FromProvinceCode)
+                .Where(t => t.Route!.ArrivalProvinceCode == request.ToProvinceCode);
+
+            if (!string.IsNullOrWhiteSpace(request.FromDistrictCode))
+            {
+                baseTrips = baseTrips.Where(t =>
+                    t.Route!.DepartureDistrictCode == request.FromDistrictCode
                 );
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.FromWardCode))
+            {
+                baseTrips = baseTrips.Where(t =>
+                    t.Route!.DepartureWardCode == request.FromWardCode
+                );
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.ToDistrictCode))
+            {
+                baseTrips = baseTrips.Where(t =>
+                    t.Route!.ArrivalDistrictCode == request.ToDistrictCode
+                );
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.ToWardCode))
+            {
+                baseTrips = baseTrips.Where(t => t.Route!.ArrivalWardCode == request.ToWardCode);
+            }
 
             var projectedTrips = baseTrips.Select(t => new TripSearchProjection
             {
