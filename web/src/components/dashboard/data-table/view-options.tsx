@@ -23,7 +23,7 @@ export function DataTableViewOptions<TData>({ table }: DataTableViewOptionsProps
                     Cột hiển thị
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[150px]">
+            <DropdownMenuContent align="end" className="w-37.5">
                 <DropdownMenuLabel>Bật tắt cột</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {table

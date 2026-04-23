@@ -14,7 +14,7 @@ import {
 } from "@/components/dashboard/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
     Dialog,
     DialogContent,
@@ -116,7 +116,7 @@ const roleFilterOptions = [
 ];
 
 const statusFilterOptions = [
-    { label: "Đang hoạt động", value: "active" },
+    { label: "OK", value: "active" },
     { label: "Đã khóa", value: "inactive" },
 ];
 
@@ -156,7 +156,7 @@ export function PageAdminUsers() {
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [globalFilter, setGlobalFilter] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
-    const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
+    const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 25 });
     const hasLoadedOnceRef = useRef(false);
 
     const roleFilterValues = useMemo(() => {
@@ -480,7 +480,7 @@ export function PageAdminUsers() {
                 header: ({ column }) => <DataTableColumnHeader column={column} title="Trạng thái" />,
                 cell: ({ row }) => (
                     <Badge variant={row.original.isActive ? "default" : "secondary"}>
-                        {row.original.isActive ? "Đang hoạt động" : "Đã khóa"}
+                        {row.original.isActive ? "OK" : "Đã khóa"}
                     </Badge>
                 ),
                 filterFn: statusFilterFn,
@@ -579,8 +579,8 @@ export function PageAdminUsers() {
     const allSelectedDeletable = selectedUsers.length > 0 && selectedUsers.every((user) => user.canBeDeleted);
     const filteredCountLabel =
         globalFilter || columnFilters.length > 0
-            ? `${filteredCount} người dùng phù hợp bộ lọc`
-            : `${totalCount || summary.totalUsers} người dùng toàn hệ thống`;
+            ? `${filteredCount} người dùng sau lọc`
+            : `${totalCount || summary.totalUsers} người dùng`;
 
     const updateSelectedUsersStatus = async (nextIsActive: boolean) => {
         if (selectedUsers.length === 0) {
@@ -715,12 +715,6 @@ export function PageAdminUsers() {
             </div>
 
             <Card>
-                <CardHeader>
-                    <CardTitle>Danh sách tài khoản</CardTitle>
-                    <CardDescription>
-                        Dùng bộ lọc để tìm nhanh, sắp xếp dữ liệu và thao tác trực tiếp trên từng tài khoản.
-                    </CardDescription>
-                </CardHeader>
                 <CardContent className="space-y-4">
                     {error ? (
                         <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
@@ -947,7 +941,7 @@ export function PageAdminUsers() {
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="active">Đang hoạt động</SelectItem>
+                                    <SelectItem value="active">OK</SelectItem>
                                     <SelectItem value="inactive">Đã khóa</SelectItem>
                                 </SelectContent>
                             </Select>
@@ -1002,9 +996,9 @@ function formatRole(role: UserRoleValue) {
         case "Passenger":
             return "Hành khách";
         case "BusAdmin":
-            return "Quản trị nhà xe";
+            return "Nhà xe";
         case "SysAdmin":
-            return "Quản trị hệ thống";
+            return "Admin";
         default:
             return role;
     }

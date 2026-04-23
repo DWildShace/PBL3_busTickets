@@ -24,7 +24,7 @@ export function DataTablePagination<TData>({ table, className }: DataTablePagina
             style={{ overflowClipMargin: 1 }}
         >
             <div className="flex w-full items-center justify-between">
-                <div className="flex w-[100px] items-center justify-center text-sm font-medium @2xl/content:hidden">
+                <div className="flex w-25 items-center justify-center text-sm font-medium @2xl/content:hidden">
                     Trang {currentPage} / {Math.max(totalPages, 1)}
                 </div>
                 <div className="flex items-center gap-2 @max-2xl/content:flex-row-reverse">
@@ -34,11 +34,11 @@ export function DataTablePagination<TData>({ table, className }: DataTablePagina
                             table.setPageSize(Number(value));
                         }}
                     >
-                        <SelectTrigger className="h-8 w-[70px]">
+                        <SelectTrigger className="h-8 w-17.5">
                             <SelectValue placeholder={table.getState().pagination.pageSize} />
                         </SelectTrigger>
                         <SelectContent side="top">
-                            {[10, 20, 30, 40, 50].map((pageSize) => (
+                            {[25, 50, 100, 200].map((pageSize) => (
                                 <SelectItem key={pageSize} value={`${pageSize}`}>
                                     {pageSize}
                                 </SelectItem>
@@ -50,7 +50,7 @@ export function DataTablePagination<TData>({ table, className }: DataTablePagina
             </div>
 
             <div className="flex items-center sm:space-x-6 lg:space-x-8">
-                <div className="flex w-[100px] items-center justify-center text-sm font-medium @max-3xl/content:hidden">
+                <div className="flex w-25 items-center justify-center text-sm font-medium @max-3xl/content:hidden">
                     Trang {currentPage} / {Math.max(totalPages, 1)}
                 </div>
                 <div className="flex items-center space-x-2">

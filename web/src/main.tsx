@@ -15,18 +15,16 @@ configure({
 
 client.setConfig({
     baseUrl: import.meta.env.VITE_API_BASE_URL || "http://localhost:5026",
-    fetch: async (url, options) => {
+    fetch: async (input, init) => {
         const token = localStorage.getItem("auth_token");
 
-        if (!token) return fetch(url, options);
+        if (!token) return fetch(input, init);
 
-        return fetch(url, {
-            ...options,
-            headers: {
-                ...options?.headers,
-                Authorization: token ? `Bearer ${token}` : "",
-            },
-        });
+        const request = input instanceof Request ? input : new Request(input, init);
+        const headers = new Headers(request.headers);
+        headers.set("Authorization", `Bearer ${token}`);
+
+        return fetch(new Request(request, { headers }));
     },
 });
 
