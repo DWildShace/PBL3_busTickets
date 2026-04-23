@@ -1,115 +1,188 @@
+import { getApiTripsSearch } from "@/api";
+import type { ProblemDetails, TimeRangeFilter, TripSearchItemDto, TripSearchResult, TripSortBy } from "@/api";
 import { observer } from "mobx-react-lite";
 import {
+    Badge,
     Box,
-    Flex,
-    Grid,
-    Container,
-    Heading,
-    Text,
     Button,
     Card,
     Checkbox,
-    RadioGroup,
-    Badge,
-    Separator,
+    Container,
+    Flex,
+    Grid,
+    Heading,
     Link,
+    RadioGroup,
+    Separator,
+    Skeleton,
+    Text,
+    TextField,
 } from "@radix-ui/themes";
-import { Star, ArrowRight, ChevronDown } from "lucide-react";
-const BUS_TICKETS = [
-    {
-        id: 1,
-        operator: "Cúc Mừng",
-        rating: 4.8,
-        reviews: 124,
-        type: "Limousine 34 giường VIP",
-        departureTime: "17:30",
-        departureLocation: "Bến xe Bắc Vinh",
-        duration: "10h30m",
-        arrivalTime: "04:00",
-        arrivalLocation: "Bến xe Trung tâm Đà Nẵng",
-        price: "450.000đ",
-        oldPrice: "500.000đ",
-        availableSeats: 5,
-        image: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=200&h=200",
-    },
-    {
-        id: 2,
-        operator: "Dương Hồng",
-        rating: 4.6,
-        reviews: 89,
-        type: "Giường nằm 40 chỗ",
-        departureTime: "18:00",
-        departureLocation: "Bến xe Con Cuông",
-        duration: "12h",
-        arrivalTime: "06:00",
-        arrivalLocation: "Bến xe Trung tâm Đà Nẵng",
-        price: "400.000đ",
-        availableSeats: 12,
-        image: "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?auto=format&fit=crop&q=80&w=200&h=200",
-    },
-    {
-        id: 3,
-        operator: "Hải Hoàng Gia",
-        rating: 4.9,
-        reviews: 256,
-        type: "Limousine 22 phòng (WC)",
-        departureTime: "19:00",
-        departureLocation: "Văn phòng Vinh",
-        duration: "9h",
-        arrivalTime: "04:00",
-        arrivalLocation: "Văn phòng Đà Nẵng",
-        price: "600.000đ",
-        availableSeats: 2,
-        image: "https://images.unsplash.com/photo-1555921015-5532091f6026?auto=format&fit=crop&q=80&w=200&h=200",
-    },
-    {
-        id: 4,
-        operator: "Cúc Mừng",
-        rating: 4.8,
-        reviews: 124,
-        type: "Limousine 34 giường VIP",
-        departureTime: "20:00",
-        departureLocation: "Bến xe Bắc Vinh",
-        duration: "10h",
-        arrivalTime: "06:00",
-        arrivalLocation: "Ngã tư Túy Loan",
-        price: "450.000đ",
-        oldPrice: "500.000đ",
-        availableSeats: 8,
-        image: "https://images.unsplash.com/photo-1625642471723-12744e6e42fd?auto=format&fit=crop&q=80&w=200&h=200",
-    },
-    {
-        id: 5,
-        operator: "Tú Tạc",
-        rating: 4.5,
-        reviews: 45,
-        type: "Giường nằm 44 chỗ",
-        departureTime: "21:30",
-        departureLocation: "Quốc lộ 1A (Vinh)",
-        duration: "9h30m",
-        arrivalTime: "07:00",
-        arrivalLocation: "Bến xe Trung tâm Đà Nẵng",
-        price: "350.000đ",
-        availableSeats: 20,
-        image: "https://images.unsplash.com/photo-1582234372722-50d7ccc30ebd?auto=format&fit=crop&q=80&w=200&h=200",
-    },
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
+import { ArrowRight, ChevronDown, Search, SlidersHorizontal, Star } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
+
+type SearchFiltersState = {
+    sortBy: TripSortBy;
+    companyIds: string[];
+    timeRanges: TimeRangeFilter[];
+    amenities: string[];
+    minPrice: string;
+    maxPrice: string;
+};
+
+type ParsedSearchQuery = {
+    fromProvinceCode: string;
+    fromDistrictCode?: string;
+    fromWardCode?: string;
+    toProvinceCode: string;
+    toDistrictCode?: string;
+    toWardCode?: string;
+    departureDate: string;
+};
+
+const DEFAULT_FILTERS: SearchFiltersState = {
+    sortBy: 0,
+    companyIds: [],
+    timeRanges: [],
+    amenities: [],
+    minPrice: "",
+    maxPrice: "",
+};
+
+const SORT_OPTIONS: Array<{ value: TripSortBy; label: string }> = [
+    { value: 0, label: "Mặc định" },
+    { value: 1, label: "Giờ đi sớm nhất" },
+    { value: 2, label: "Giờ đi muộn nhất" },
+    { value: 4, label: "Giá tăng dần" },
+    { value: 5, label: "Giá giảm dần" },
+    { value: 3, label: "Đánh giá cao nhất" },
 ];
 
-function SearchSummary() {
+const TIME_RANGE_LABELS: Record<number, string> = {
+    1: "Sáng sớm 00:00 - 06:00",
+    2: "Sáng 06:00 - 12:00",
+    3: "Chiều 12:00 - 18:00",
+    4: "Tối 18:00 - 24:00",
+};
+
+function parseSearchQuery(searchParams: URLSearchParams): ParsedSearchQuery | null {
+    const fromProvinceCode = searchParams.get("fp")?.trim() ?? "";
+    const toProvinceCode = searchParams.get("tp")?.trim() ?? "";
+    const departureDate = searchParams.get("date")?.trim() ?? "";
+
+    if (!fromProvinceCode || !toProvinceCode || !departureDate) {
+        return null;
+    }
+
+    return {
+        fromProvinceCode,
+        fromDistrictCode: searchParams.get("fd")?.trim() || undefined,
+        fromWardCode: searchParams.get("fw")?.trim() || undefined,
+        toProvinceCode,
+        toDistrictCode: searchParams.get("td")?.trim() || undefined,
+        toWardCode: searchParams.get("tw")?.trim() || undefined,
+        departureDate,
+    };
+}
+
+function parseApiErrorMessage(error: unknown, fallback: string) {
+    if (!error) {
+        return fallback;
+    }
+
+    if (error instanceof Error && error.message) {
+        return error.message;
+    }
+
+    if (typeof error === "object") {
+        const problem = error as ProblemDetails & { message?: string; error?: string };
+        if (typeof problem.message === "string") {
+            return problem.message;
+        }
+        if (typeof problem.error === "string") {
+            return problem.error;
+        }
+        if (typeof problem.title === "string") {
+            return problem.title;
+        }
+        if (typeof problem.detail === "string") {
+            return problem.detail;
+        }
+    }
+
+    return fallback;
+}
+
+function formatCurrency(value: number) {
+    return new Intl.NumberFormat("vi-VN", {
+        style: "currency",
+        currency: "VND",
+        maximumFractionDigits: 0,
+    }).format(value);
+}
+
+function formatDateLabel(value: string) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+        return value;
+    }
+
+    return format(date, "dd/MM/yyyy", { locale: vi });
+}
+
+function formatTimeLabel(value: string) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+        return value;
+    }
+
+    return format(date, "HH:mm", { locale: vi });
+}
+
+function formatDurationLabel(durationMinutes: number) {
+    if (durationMinutes <= 0) {
+        return "--";
+    }
+
+    const hours = Math.floor(durationMinutes / 60);
+    const minutes = durationMinutes % 60;
+
+    if (hours === 0) {
+        return `${minutes}m`;
+    }
+
+    if (minutes === 0) {
+        return `${hours}h`;
+    }
+
+    return `${hours}h${minutes}m`;
+}
+
+function SearchSummary({ result, onChangeSearch }: { result: TripSearchResult; onChangeSearch: () => void }) {
     return (
         <Box py="3" style={{ backgroundColor: "var(--blue-2)", borderBottom: "1px solid var(--blue-4)" }}>
             <Container size="4" px="4">
                 <Flex justify="between" align="center" wrap="wrap" gap="3">
                     <Flex align="center" gap="3" wrap="wrap">
                         <Text size="4" weight="bold" color="blue" highContrast>
-                            Nghệ An <ArrowRight size={16} className="inline-block mx-1" /> Đà Nẵng
+                            {result.summary?.origin?.displayName || "--"}{" "}
+                            <ArrowRight size={16} className="inline-block mx-1" />{" "}
+                            {result.summary?.destination?.displayName || "--"}
                         </Text>
                         <Separator orientation="vertical" size="1" color="blue" className="hidden sm:block" />
                         <Text size="3" color="blue">
-                            13/04/2026
+                            {result.summary?.departureDate ? formatDateLabel(result.summary.departureDate) : "--"}
+                        </Text>
+                        <Separator orientation="vertical" size="1" color="blue" className="hidden sm:block" />
+                        <Text size="3" color="blue">
+                            {result.totalResults} chuyến phù hợp
                         </Text>
                     </Flex>
-                    <Button variant="soft" color="blue" size="2">
+                    <Button variant="soft" color="blue" size="2" onClick={onChangeSearch}>
                         Thay đổi tìm kiếm
                     </Button>
                 </Flex>
@@ -118,105 +191,149 @@ function SearchSummary() {
     );
 }
 
-function FilterSidebar() {
+function FilterSidebar({
+    result,
+    filters,
+    onSortChange,
+    onToggleCompany,
+    onToggleTimeRange,
+    onToggleAmenity,
+    onPriceChange,
+    onReset,
+}: {
+    result: TripSearchResult;
+    filters: SearchFiltersState;
+    onSortChange: (value: TripSortBy) => void;
+    onToggleCompany: (companyId: string) => void;
+    onToggleTimeRange: (value: TimeRangeFilter) => void;
+    onToggleAmenity: (value: string) => void;
+    onPriceChange: (field: "minPrice" | "maxPrice", value: string) => void;
+    onReset: () => void;
+}) {
     return (
         <Card size="3" variant="surface" style={{ backgroundColor: "var(--color-panel-solid)" }}>
             <Flex direction="column" gap="5">
-                {/* Sắp xếp */}
+                <Flex justify="between" align="center">
+                    <Heading size="4">Bộ lọc</Heading>
+                    <Button variant="ghost" size="1" color="gray" onClick={onReset}>
+                        Đặt lại
+                    </Button>
+                </Flex>
+
                 <Box>
                     <Heading size="3" mb="3">
                         Sắp xếp
                     </Heading>
-                    <RadioGroup.Root defaultValue="default" name="sort">
+                    <RadioGroup.Root
+                        value={String(filters.sortBy)}
+                        onValueChange={(value) => onSortChange(Number(value) as TripSortBy)}
+                    >
                         <Flex direction="column" gap="2">
-                            <Text as="label" size="2">
-                                <Flex gap="2" align="center">
-                                    <RadioGroup.Item value="default" /> Mặc định
-                                </Flex>
-                            </Text>
-                            <Text as="label" size="2">
-                                <Flex gap="2" align="center">
-                                    <RadioGroup.Item value="time-asc" /> Giờ đi sớm nhất
-                                </Flex>
-                            </Text>
-                            <Text as="label" size="2">
-                                <Flex gap="2" align="center">
-                                    <RadioGroup.Item value="time-desc" /> Giờ đi muộn nhất
-                                </Flex>
-                            </Text>
-                            <Text as="label" size="2">
-                                <Flex gap="2" align="center">
-                                    <RadioGroup.Item value="price-asc" /> Giá tăng dần
-                                </Flex>
-                            </Text>
-                            <Text as="label" size="2">
-                                <Flex gap="2" align="center">
-                                    <RadioGroup.Item value="price-desc" /> Giá giảm dần
-                                </Flex>
-                            </Text>
+                            {SORT_OPTIONS.map((option) => (
+                                <Text as="label" size="2" key={option.value}>
+                                    <Flex gap="2" align="center">
+                                        <RadioGroup.Item value={String(option.value)} /> {option.label}
+                                    </Flex>
+                                </Text>
+                            ))}
                         </Flex>
                     </RadioGroup.Root>
                 </Box>
 
                 <Separator size="4" />
 
-                {/* Giờ đi */}
                 <Box>
                     <Heading size="3" mb="3">
-                        Giờ đi
+                        Khoảng giá
                     </Heading>
                     <Flex direction="column" gap="2">
-                        <Text as="label" size="2">
-                            <Flex gap="2" align="center">
-                                <Checkbox defaultChecked /> Sáng sớm 00:00 - 06:00 (1)
-                            </Flex>
-                        </Text>
-                        <Text as="label" size="2">
-                            <Flex gap="2" align="center">
-                                <Checkbox /> Sáng 06:00 - 12:00 (0)
-                            </Flex>
-                        </Text>
-                        <Text as="label" size="2">
-                            <Flex gap="2" align="center">
-                                <Checkbox defaultChecked /> Chiều 12:00 - 18:00 (2)
-                            </Flex>
-                        </Text>
-                        <Text as="label" size="2">
-                            <Flex gap="2" align="center">
-                                <Checkbox defaultChecked /> Tối 18:00 - 24:00 (8)
-                            </Flex>
-                        </Text>
+                        <TextField.Root
+                            value={filters.minPrice}
+                            onChange={(event) => onPriceChange("minPrice", event.target.value)}
+                            placeholder={
+                                result.filters?.priceRange?.min !== undefined
+                                    ? `Từ ${formatCurrency(result.filters.priceRange.min)}`
+                                    : "Giá thấp nhất"
+                            }
+                        />
+                        <TextField.Root
+                            value={filters.maxPrice}
+                            onChange={(event) => onPriceChange("maxPrice", event.target.value)}
+                            placeholder={
+                                result.filters?.priceRange?.max !== undefined
+                                    ? `Đến ${formatCurrency(result.filters.priceRange.max)}`
+                                    : "Giá cao nhất"
+                            }
+                        />
                     </Flex>
                 </Box>
 
                 <Separator size="4" />
 
-                {/* Nhà xe */}
+                <Box>
+                    <Heading size="3" mb="3">
+                        Giờ đi
+                    </Heading>
+                    <Flex direction="column" gap="2">
+                        {result.filters?.departureTimeRanges?.map((option) => (
+                            <Text as="label" size="2" key={option.value}>
+                                <Flex gap="2" align="center">
+                                    <Checkbox
+                                        checked={filters.timeRanges.includes(option.value ?? 0)}
+                                        onCheckedChange={() => onToggleTimeRange(option.value ?? 0)}
+                                    />
+                                    {TIME_RANGE_LABELS[option.value ?? 0] || option.value} ({option.count ?? 0})
+                                </Flex>
+                            </Text>
+                        ))}
+                    </Flex>
+                </Box>
+
+                <Separator size="4" />
+
                 <Box>
                     <Heading size="3" mb="3">
                         Nhà xe
                     </Heading>
                     <Flex direction="column" gap="2">
-                        <Text as="label" size="2">
-                            <Flex gap="2" align="center">
-                                <Checkbox defaultChecked /> Cúc Mừng (4)
-                            </Flex>
-                        </Text>
-                        <Text as="label" size="2">
-                            <Flex gap="2" align="center">
-                                <Checkbox defaultChecked /> Dương Hồng (2)
-                            </Flex>
-                        </Text>
-                        <Text as="label" size="2">
-                            <Flex gap="2" align="center">
-                                <Checkbox defaultChecked /> Hải Hoàng Gia (3)
-                            </Flex>
-                        </Text>
-                        <Text as="label" size="2">
-                            <Flex gap="2" align="center">
-                                <Checkbox defaultChecked /> Tú Tạc (1)
-                            </Flex>
-                        </Text>
+                        {result.filters?.busCompanies?.map((option) => (
+                            <Text as="label" size="2" key={option.companyId}>
+                                <Flex gap="2" align="center">
+                                    <Checkbox
+                                        checked={filters.companyIds.includes(option.companyId ?? "")}
+                                        onCheckedChange={() => onToggleCompany(option.companyId ?? "")}
+                                    />
+                                    {option.name} ({option.count ?? 0})
+                                </Flex>
+                            </Text>
+                        ))}
+                    </Flex>
+                </Box>
+
+                <Separator size="4" />
+
+                <Box>
+                    <Heading size="3" mb="3">
+                        Tiện ích
+                    </Heading>
+                    <Flex direction="column" gap="2">
+                        {result.filters?.amenities?.length ? (
+                            result.filters.amenities.map((option) => (
+                                <Text as="label" size="2" key={option.value}>
+                                    <Flex gap="2" align="center">
+                                        <Checkbox
+                                            checked={filters.amenities.includes(option.value ?? "")}
+                                            onCheckedChange={() => onToggleAmenity(option.value ?? "")}
+                                        />
+                                        {option.value} ({option.count ?? 0})
+                                    </Flex>
+                                </Text>
+                            ))
+                        ) : (
+                            <Text size="2" color="gray">
+                                Chưa có dữ liệu tiện ích.
+                            </Text>
+                        )}
                     </Flex>
                 </Box>
             </Flex>
@@ -224,54 +341,73 @@ function FilterSidebar() {
     );
 }
 
-function TicketCard({ ticket }: { ticket: (typeof BUS_TICKETS)[0] }) {
+function TicketCard({ ticket }: { ticket: TripSearchItemDto }) {
     return (
         <Card size="3" variant="surface" style={{ backgroundColor: "var(--color-panel-solid)", overflow: "visible" }}>
-            <Grid columns={{ initial: "1", sm: "1fr 200px" }} gap="4">
-                {/* Cột trái: Ảnh + Thông tin chuyến */}
+            <Grid columns={{ initial: "1", sm: "1fr 220px" }} gap="4">
                 <Flex gap="4" direction={{ initial: "column", sm: "row" }}>
                     <Box style={{ flexShrink: 0, width: "140px" }}>
-                        <img
-                            src={ticket.image}
-                            alt={ticket.operator}
-                            style={{
-                                width: "100%",
-                                height: "140px",
-                                objectFit: "cover",
-                                borderRadius: "var(--radius-3)",
-                            }}
-                        />
+                        {ticket.imageUrl ? (
+                            <img
+                                src={ticket.imageUrl}
+                                alt={ticket.busCompanyName}
+                                style={{
+                                    width: "100%",
+                                    height: "140px",
+                                    objectFit: "cover",
+                                    borderRadius: "var(--radius-3)",
+                                }}
+                            />
+                        ) : (
+                            <Box
+                                style={{
+                                    width: "100%",
+                                    height: "140px",
+                                    borderRadius: "var(--radius-3)",
+                                    backgroundColor: "var(--gray-4)",
+                                }}
+                            />
+                        )}
                     </Box>
 
                     <Flex direction="column" justify="between" style={{ flexGrow: 1 }}>
                         <Box>
-                            <Flex align="center" gap="2" mb="1">
+                            <Flex align="center" gap="2" mb="1" wrap="wrap">
                                 <Heading size="4" weight="bold">
-                                    {ticket.operator}
+                                    {ticket.busCompanyName}
                                 </Heading>
                                 <Badge color="green" size="1" variant="soft">
                                     <Star size={12} className="inline mr-1" />
-                                    {ticket.rating} ({ticket.reviews})
+                                    {ticket.rating.toFixed(1)} ({ticket.reviewCount})
                                 </Badge>
                             </Flex>
-                            <Text size="2" color="gray" as="div" mb="3">
-                                {ticket.type}
+                            <Text size="2" color="gray" as="div" mb="1">
+                                {ticket.busTypeName}
                             </Text>
+                            <Text size="2" color="gray" as="div" mb="3">
+                                {ticket.routeName}
+                            </Text>
+                            {ticket.amenities?.length ? (
+                                <Flex gap="2" wrap="wrap" mb="3">
+                                    {ticket.amenities.map((amenity) => (
+                                        <Badge key={amenity} variant="soft" color="gray">
+                                            {amenity}
+                                        </Badge>
+                                    ))}
+                                </Flex>
+                            ) : null}
                         </Box>
 
-                        {/* Timeline chuyến đi */}
                         <Flex align="center" gap="3" style={{ position: "relative" }}>
-                            {/* Điểm đi */}
                             <Flex direction="column" align="center">
                                 <Text size="4" weight="bold">
-                                    {ticket.departureTime}
+                                    {formatTimeLabel(ticket.departureTime)}
                                 </Text>
-                                <Text size="2" color="gray">
+                                <Text size="2" color="gray" align="center">
                                     {ticket.departureLocation}
                                 </Text>
                             </Flex>
 
-                            {/* Đường nối giữa */}
                             <Box style={{ flexGrow: 1, position: "relative", textAlign: "center" }}>
                                 <Text
                                     size="1"
@@ -283,7 +419,7 @@ function TicketCard({ ticket }: { ticket: (typeof BUS_TICKETS)[0] }) {
                                         padding: "0 4px",
                                     }}
                                 >
-                                    {ticket.duration}
+                                    {formatDurationLabel(ticket.durationMinutes)}
                                 </Text>
                                 <Box
                                     style={{
@@ -295,8 +431,7 @@ function TicketCard({ ticket }: { ticket: (typeof BUS_TICKETS)[0] }) {
                                         backgroundColor: "var(--gray-a6)",
                                         zIndex: 1,
                                     }}
-                                ></Box>
-                                {/* 2 dấu chấm */}
+                                />
                                 <Box
                                     style={{
                                         position: "absolute",
@@ -309,7 +444,7 @@ function TicketCard({ ticket }: { ticket: (typeof BUS_TICKETS)[0] }) {
                                         transform: "translateY(-50%)",
                                         zIndex: 2,
                                     }}
-                                ></Box>
+                                />
                                 <Box
                                     style={{
                                         position: "absolute",
@@ -322,15 +457,14 @@ function TicketCard({ ticket }: { ticket: (typeof BUS_TICKETS)[0] }) {
                                         transform: "translateY(-50%)",
                                         zIndex: 2,
                                     }}
-                                ></Box>
+                                />
                             </Box>
 
-                            {/* Điểm đến */}
                             <Flex direction="column" align="center">
                                 <Text size="4" weight="bold">
-                                    {ticket.arrivalTime}
+                                    {formatTimeLabel(ticket.arrivalTime)}
                                 </Text>
-                                <Text size="2" color="gray">
+                                <Text size="2" color="gray" align="center">
                                     {ticket.arrivalLocation}
                                 </Text>
                             </Flex>
@@ -346,13 +480,8 @@ function TicketCard({ ticket }: { ticket: (typeof BUS_TICKETS)[0] }) {
                 >
                     <Box className="text-right">
                         <Text size="5" weight="bold" color="blue" as="div">
-                            {ticket.price}
+                            {formatCurrency(ticket.lowestPrice)}
                         </Text>
-                        {ticket.oldPrice && (
-                            <Text size="2" color="gray" style={{ textDecoration: "line-through" }} as="div">
-                                {ticket.oldPrice}
-                            </Text>
-                        )}
                     </Box>
 
                     <Flex direction="column" align="end" gap="2">
@@ -372,57 +501,245 @@ function TicketCard({ ticket }: { ticket: (typeof BUS_TICKETS)[0] }) {
     );
 }
 
-const PageMainSearch = observer(() => {
+function SearchPageSkeleton() {
     return (
-        <>
-            <Box
-                style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    minHeight: "100vh",
-                    backgroundColor: "var(--gray-2)",
-                }}
-            >
-                <SearchSummary />
+        <Flex direction="column" gap="4">
+            {Array.from({ length: 3 }).map((_, index) => (
+                <Card key={index} size="3">
+                    <Flex direction="column" gap="3">
+                        <Skeleton height="24px" width="40%" />
+                        <Skeleton height="18px" width="70%" />
+                        <Skeleton height="120px" width="100%" />
+                    </Flex>
+                </Card>
+            ))}
+        </Flex>
+    );
+}
 
-                <Box style={{ flexGrow: 1 }} py="6">
+const PageMainSearch = observer(() => {
+    const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const parsedQuery = useMemo(() => parseSearchQuery(searchParams), [searchParams]);
+    const [filters, setFilters] = useState<SearchFiltersState>(DEFAULT_FILTERS);
+    const [debouncedFilters, setDebouncedFilters] = useState<SearchFiltersState>(DEFAULT_FILTERS);
+    const [result, setResult] = useState<TripSearchResult | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const timeout = window.setTimeout(() => {
+            setDebouncedFilters(filters);
+        }, 350);
+
+        return () => window.clearTimeout(timeout);
+    }, [filters]);
+
+    useEffect(() => {
+        setFilters(DEFAULT_FILTERS);
+        setDebouncedFilters(DEFAULT_FILTERS);
+    }, [parsedQuery?.departureDate, parsedQuery?.fromProvinceCode, parsedQuery?.toProvinceCode]);
+
+    useEffect(() => {
+        if (!parsedQuery) {
+            setResult(null);
+            setError("Thiếu thông tin tìm kiếm.");
+            return;
+        }
+
+        let active = true;
+
+        const fetchTrips = async () => {
+            setLoading(true);
+            setError(null);
+
+            try {
+                const response = await getApiTripsSearch({
+                    query: {
+                        fromProvinceCode: parsedQuery.fromProvinceCode,
+                        fromDistrictCode: parsedQuery.fromDistrictCode,
+                        fromWardCode: parsedQuery.fromWardCode,
+                        toProvinceCode: parsedQuery.toProvinceCode,
+                        toDistrictCode: parsedQuery.toDistrictCode,
+                        toWardCode: parsedQuery.toWardCode,
+                        departureDate: parsedQuery.departureDate,
+                        sortBy: debouncedFilters.sortBy,
+                        busCompanyIds: debouncedFilters.companyIds,
+                        departureTimeRanges: debouncedFilters.timeRanges,
+                        amenities: debouncedFilters.amenities,
+                        minPrice: debouncedFilters.minPrice ? Number(debouncedFilters.minPrice) : undefined,
+                        maxPrice: debouncedFilters.maxPrice ? Number(debouncedFilters.maxPrice) : undefined,
+                        page: 1,
+                        pageSize: 20,
+                    },
+                });
+
+                if (!active) {
+                    return;
+                }
+
+                if (response.error || !response.data) {
+                    throw response.error ?? new Error("Không thể tải kết quả tìm kiếm.");
+                }
+
+                setResult(response.data as TripSearchResult);
+            } catch (fetchError) {
+                if (!active) {
+                    return;
+                }
+
+                const message = parseApiErrorMessage(fetchError, "Không thể tải kết quả tìm kiếm.");
+                setError(message);
+                setResult(null);
+                toast.error(message);
+            } finally {
+                if (active) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        void fetchTrips();
+
+        return () => {
+            active = false;
+        };
+    }, [parsedQuery, debouncedFilters]);
+
+    const toggleCompany = (companyId: string) => {
+        setFilters((current) => ({
+            ...current,
+            companyIds: current.companyIds.includes(companyId)
+                ? current.companyIds.filter((item) => item !== companyId)
+                : [...current.companyIds, companyId],
+        }));
+    };
+
+    const toggleAmenity = (value: string) => {
+        setFilters((current) => ({
+            ...current,
+            amenities: current.amenities.includes(value)
+                ? current.amenities.filter((item) => item !== value)
+                : [...current.amenities, value],
+        }));
+    };
+
+    const toggleTimeRange = (value: TimeRangeFilter) => {
+        setFilters((current) => ({
+            ...current,
+            timeRanges: current.timeRanges.includes(value)
+                ? current.timeRanges.filter((item) => item !== value)
+                : [...current.timeRanges, value],
+        }));
+    };
+
+    return (
+        <Box style={{ display: "flex", flexDirection: "column", minHeight: "100vh", backgroundColor: "var(--gray-2)" }}>
+            {result ? (
+                <SearchSummary result={result} onChangeSearch={() => navigate("/")} />
+            ) : (
+                <Box py="3" style={{ backgroundColor: "var(--blue-2)", borderBottom: "1px solid var(--blue-4)" }}>
                     <Container size="4" px="4">
-                        <Grid columns={{ initial: "1", md: "4" }} gap="6">
-                            <Box style={{ gridColumn: "span 1" }} className="hidden md:block">
-                                <FilterSidebar />
-                            </Box>
-                            <Box style={{ gridColumn: "span 3" }}>
-                                <Heading size="5" mb="4" highContrast>
-                                    Đặt mua vé xe đi Đà Nẵng từ Nghệ An chất lượng cao và giá vé ưu đãi nhất
-                                </Heading>
-                                <Card
-                                    size="1"
-                                    mb="4"
-                                    style={{
-                                        backgroundColor: "var(--blue-3)",
-                                        border: "1px solid var(--blue-5)",
-                                        cursor: "pointer",
-                                    }}
-                                >
-                                    <Flex justify="center" p="2">
-                                        <Text size="3" color="blue" weight="bold">
-                                            🎉 Nhập mã <Badge color="amber">VNPAY50K</Badge> giảm ngay 50K khi thanh
-                                            toán qua VNPAY
+                        <Flex justify="between" align="center" wrap="wrap" gap="3">
+                            <Flex align="center" gap="2">
+                                <SlidersHorizontal size={16} />
+                                <Text size="3" weight="bold">
+                                    Tìm kiếm chuyến xe
+                                </Text>
+                            </Flex>
+                            <Button variant="soft" color="blue" size="2" onClick={() => navigate("/")}>
+                                Thay đổi tìm kiếm
+                            </Button>
+                        </Flex>
+                    </Container>
+                </Box>
+            )}
+
+            <Box style={{ flexGrow: 1 }} py="6">
+                <Container size="4" px="4">
+                    <Grid columns={{ initial: "1", md: "4" }} gap="6">
+                        <Box style={{ gridColumn: "span 1" }} className="hidden md:block">
+                            {result ? (
+                                <FilterSidebar
+                                    result={result}
+                                    filters={filters}
+                                    onSortChange={(value) => setFilters((current) => ({ ...current, sortBy: value }))}
+                                    onToggleCompany={toggleCompany}
+                                    onToggleTimeRange={toggleTimeRange}
+                                    onToggleAmenity={toggleAmenity}
+                                    onPriceChange={(field, value) =>
+                                        setFilters((current) => ({ ...current, [field]: value.replace(/[^\d]/g, "") }))
+                                    }
+                                    onReset={() => setFilters(DEFAULT_FILTERS)}
+                                />
+                            ) : (
+                                <Card size="3">
+                                    <Flex direction="column" gap="3">
+                                        <Skeleton height="24px" width="50%" />
+                                        <Skeleton height="18px" width="100%" />
+                                        <Skeleton height="18px" width="100%" />
+                                        <Skeleton height="18px" width="80%" />
+                                    </Flex>
+                                </Card>
+                            )}
+                        </Box>
+                        <Box style={{ gridColumn: "span 3" }}>
+                            <Heading size="5" mb="4" highContrast>
+                                {result
+                                    ? `Đặt mua vé xe đi ${result.summary?.destination?.displayName ?? ""} từ ${result.summary?.origin?.displayName ?? ""}`
+                                    : "Đang tìm chuyến xe phù hợp"}
+                            </Heading>
+                            <Card
+                                size="1"
+                                mb="4"
+                                style={{ backgroundColor: "var(--blue-3)", border: "1px solid var(--blue-5)" }}
+                            >
+                                <Flex justify="center" p="2">
+                                    <Text size="3" color="blue" weight="bold">
+                                        🎉 Nhập mã <Badge color="amber">VNPAY50K</Badge> giảm ngay 50K khi thanh toán
+                                        qua VNPAY
+                                    </Text>
+                                </Flex>
+                            </Card>
+
+                            {loading ? (
+                                <SearchPageSkeleton />
+                            ) : error ? (
+                                <Card size="3">
+                                    <Flex direction="column" gap="3" align="center" py="6">
+                                        <Text size="4" weight="bold">
+                                            Không thể tải kết quả
+                                        </Text>
+                                        <Text size="2" color="gray">
+                                            {error}
+                                        </Text>
+                                        <Button onClick={() => navigate("/")}>Quay lại tìm kiếm</Button>
+                                    </Flex>
+                                </Card>
+                            ) : result && result.items?.length ? (
+                                <Flex direction="column" gap="4">
+                                    {result.items.map((ticket) => (
+                                        <TicketCard key={ticket.tripId} ticket={ticket} />
+                                    ))}
+                                </Flex>
+                            ) : (
+                                <Card size="3">
+                                    <Flex direction="column" gap="3" align="center" py="6">
+                                        <Search size={24} />
+                                        <Text size="4" weight="bold">
+                                            Không tìm thấy chuyến phù hợp
+                                        </Text>
+                                        <Text size="2" color="gray" align="center">
+                                            Hãy thử thay đổi điểm đón, điểm trả hoặc bộ lọc để xem thêm kết quả.
                                         </Text>
                                     </Flex>
                                 </Card>
-
-                                <Flex direction="column" gap="4">
-                                    {BUS_TICKETS.map((ticket) => (
-                                        <TicketCard key={ticket.id} ticket={ticket} />
-                                    ))}
-                                </Flex>
-                            </Box>
-                        </Grid>
-                    </Container>
-                </Box>
+                            )}
+                        </Box>
+                    </Grid>
+                </Container>
             </Box>
-        </>
+        </Box>
     );
 });
 

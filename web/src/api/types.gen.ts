@@ -214,6 +214,80 @@ export type SeatType = 0 | 1 | 2 | 3 | 4 | 5;
 
 export type TicketStatus = 0 | 1 | 2;
 
+export type TimeRangeFilter = 1 | 2 | 3 | 4;
+
+export type TripSearchAmenityFilterOptionDto = {
+    value?: string | null;
+    count?: number;
+};
+
+export type TripSearchCompanyFilterOptionDto = {
+    companyId?: string;
+    name?: string | null;
+    count?: number;
+};
+
+export type TripSearchFilterMetadataDto = {
+    busCompanies?: Array<TripSearchCompanyFilterOptionDto> | null;
+    departureTimeRanges?: Array<TripSearchTimeRangeFilterOptionDto> | null;
+    amenities?: Array<TripSearchAmenityFilterOptionDto> | null;
+    priceRange?: TripSearchPriceRangeDto;
+};
+
+export type TripSearchItemDto = {
+    tripId?: string;
+    routeId?: string;
+    companyId?: string;
+    busCompanyName?: string | null;
+    busTypeName?: string | null;
+    routeName?: string | null;
+    departureLocation?: string | null;
+    arrivalLocation?: string | null;
+    departureTime?: string;
+    arrivalTime?: string;
+    durationMinutes?: number;
+    lowestPrice?: number;
+    availableSeats?: number;
+    rating?: number;
+    reviewCount?: number;
+    amenities?: Array<string> | null;
+    imageUrl?: string | null;
+};
+
+export type TripSearchLocationSummaryDto = {
+    provinceCode?: string | null;
+    districtCode?: string | null;
+    wardCode?: string | null;
+    displayName?: string | null;
+};
+
+export type TripSearchPriceRangeDto = {
+    min?: number;
+    max?: number;
+};
+
+export type TripSearchResult = {
+    totalResults?: number;
+    page?: number;
+    pageSize?: number;
+    summary?: TripSearchSummaryDto;
+    filters?: TripSearchFilterMetadataDto;
+    items?: Array<TripSearchItemDto> | null;
+};
+
+export type TripSearchSummaryDto = {
+    origin?: TripSearchLocationSummaryDto;
+    destination?: TripSearchLocationSummaryDto;
+    departureDate?: string;
+};
+
+export type TripSearchTimeRangeFilterOptionDto = {
+    value?: TimeRangeFilter;
+    count?: number;
+};
+
+export type TripSortBy = 0 | 1 | 2 | 3 | 4 | 5;
+
 export type TripStatus = 0 | 1 | 2 | 3;
 
 export type UpdateBusDto = {
@@ -371,6 +445,8 @@ export type GetApiBusadminBusesTripsData = {
     query?: {
         year?: number;
         month?: number;
+        page?: number;
+        pageSize?: number;
     };
     url: '/api/busadmin/buses/trips';
 };
@@ -433,7 +509,10 @@ export type GetApiBusadminBusesBusTypesByBusTypeIdSeatLayoutsData = {
     path: {
         busTypeId: string;
     };
-    query?: never;
+    query?: {
+        page?: number;
+        pageSize?: number;
+    };
     url: '/api/busadmin/buses/bus-types/{busTypeId}/seat-layouts';
 };
 
@@ -495,7 +574,10 @@ export type PutApiBusadminBusesSeatLayoutsByLayoutIdResponses = {
 export type GetApiBusadminBusesCompanyData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        page?: number;
+        pageSize?: number;
+    };
     url: '/api/busadmin/buses/company';
 };
 
@@ -539,6 +621,8 @@ export type GetApiBusadminBusesTicketsData = {
     path?: never;
     query?: {
         status?: TicketStatus;
+        page?: number;
+        pageSize?: number;
     };
     url: '/api/busadmin/buses/tickets';
 };
@@ -713,26 +797,51 @@ export type GetApiLandingProvincesSearchResponse = GetApiLandingProvincesSearchR
 export type GetApiTripsSearchData = {
     body?: never;
     path?: never;
-    query?: {
-        origin?: string;
-        destination?: string;
-        departureDate?: string;
+    query: {
+        FromProvinceCode: string;
+        FromDistrictCode?: string;
+        FromWardCode?: string;
+        ToProvinceCode: string;
+        ToDistrictCode?: string;
+        ToWardCode?: string;
+        DepartureDate: string;
+        SortBy?: TripSortBy;
+        DepartureTimeRanges?: Array<TimeRangeFilter>;
+        BusCompanyIds?: Array<string>;
+        MinPrice?: number;
+        MaxPrice?: number;
+        Amenities?: Array<string>;
+        Page?: number;
+        PageSize?: number;
     };
     url: '/api/trips/search';
 };
+
+export type GetApiTripsSearchErrors = {
+    /**
+     * Bad Request
+     */
+    400: ProblemDetails;
+};
+
+export type GetApiTripsSearchError = GetApiTripsSearchErrors[keyof GetApiTripsSearchErrors];
 
 export type GetApiTripsSearchResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: TripSearchResult;
 };
+
+export type GetApiTripsSearchResponse = GetApiTripsSearchResponses[keyof GetApiTripsSearchResponses];
 
 export type GetApiAdminBusAdminUpgradeRequestsData = {
     body?: never;
     path?: never;
     query?: {
         status?: BusAdminUpgradeRequestStatus;
+        page?: number;
+        pageSize?: number;
     };
     url: '/api/admin/bus-admin-upgrade-requests';
 };
@@ -832,6 +941,8 @@ export type GetApiAdminSystemCompaniesByCompanyIdTripsData = {
     query?: {
         year?: number;
         month?: number;
+        page?: number;
+        pageSize?: number;
     };
     url: '/api/admin/system/companies/{companyId}/trips';
 };
@@ -960,6 +1071,8 @@ export type GetApiAdminSystemCompaniesData = {
     path?: never;
     query?: {
         q?: string;
+        page?: number;
+        pageSize?: number;
     };
     url: '/api/admin/system/companies';
 };
@@ -1010,6 +1123,8 @@ export type GetApiAdminSystemCompaniesByCompanyIdTicketsData = {
     };
     query?: {
         status?: TicketStatus;
+        page?: number;
+        pageSize?: number;
     };
     url: '/api/admin/system/companies/{companyId}/tickets';
 };

@@ -858,6 +858,49 @@ namespace Pbl3.Data
             _context.RouteStops.AddRange(routeStops);
             await _context.SaveChangesAsync();
             _logger.LogInformation("Seeded {Count} route stops", routeStops.Count);
+
+            await UpdateRouteLocationCodesAsync();
+        }
+
+        private async Task UpdateRouteLocationCodesAsync()
+        {
+            var routes = await _context
+                .BusRoutes.Include(r => r.BusRouteStops)
+                .ThenInclude(stop => stop.Station)
+                .ToListAsync();
+
+            foreach (var route in routes)
+            {
+                var firstPickup = route
+                    .BusRouteStops.Where(stop => stop.IsPickUp)
+                    .OrderBy(stop => stop.StopOrder)
+                    .FirstOrDefault();
+
+                var lastDropoff = route
+                    .BusRouteStops.Where(stop => stop.IsDropOff)
+                    .OrderByDescending(stop => stop.StopOrder)
+                    .FirstOrDefault();
+
+                if (firstPickup?.Station != null)
+                {
+                    route.DepartureProvinceCode = firstPickup.Station.ProvinceCode;
+                    route.DepartureDistrictCode = firstPickup.Station.DistrictCode;
+                    route.DepartureWardCode = firstPickup.Station.WardCode;
+                }
+
+                if (lastDropoff?.Station != null)
+                {
+                    route.ArrivalProvinceCode = lastDropoff.Station.ProvinceCode;
+                    route.ArrivalDistrictCode = lastDropoff.Station.DistrictCode;
+                    route.ArrivalWardCode = lastDropoff.Station.WardCode;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            _logger.LogInformation(
+                "Updated location codes for {Count} routes",
+                routes.Count
+            );
         }
 
         private async Task SeedTripsAsync()

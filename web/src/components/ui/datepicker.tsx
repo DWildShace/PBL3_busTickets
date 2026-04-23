@@ -78,6 +78,7 @@ export function DatePickerInput({ date, setDate, onDateChange, inputProps }: Dat
     );
 
     React.useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setValue(formatDate(currentDate));
         if (currentDate) {
             setMonth(currentDate);
@@ -100,7 +101,7 @@ export function DatePickerInput({ date, setDate, onDateChange, inputProps }: Dat
                     }
 
                     if (e.target instanceof HTMLInputElement) {
-                        setOpen(true);
+                        setTimeout(() => setOpen(true), 100);
                     }
                 }}
                 onChange={(e) => {
@@ -126,7 +127,7 @@ export function DatePickerInput({ date, setDate, onDateChange, inputProps }: Dat
 
                     if (e.key === "ArrowDown") {
                         e.preventDefault();
-                        setOpen(true);
+                        setTimeout(() => setOpen(true), 100);
                     }
                 }}
             >

@@ -5,9 +5,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 export interface SelectedAddress {
-    provinceId: number;
-    districtId?: number;
-    wardId?: number;
+    provinceId: string;
+    districtId?: string;
+    wardId?: string;
 }
 
 export default function AddressSearch({
@@ -76,7 +76,7 @@ export default function AddressSearch({
         }
 
         timeoutRef.current = setTimeout(() => {
-            handleProvinceSearch(txt);
+            handleProvinceSearch(text ?? txt);
         }, 500);
 
         return () => {
@@ -84,7 +84,7 @@ export default function AddressSearch({
                 clearTimeout(timeoutRef.current);
             }
         };
-    }, [txt, handleProvinceSearch]);
+    }, [txt, handleProvinceSearch, text]);
 
     return (
         <Popover.Root open={open} onOpenChange={setOpen}>
@@ -145,9 +145,9 @@ export default function AddressSearch({
                                                             variant="ghost"
                                                             onClick={() => {
                                                                 (setSelected ?? setSelectedBt)({
-                                                                    provinceId: Number(province.id),
-                                                                    districtId: Number(district.id),
-                                                                    wardId: Number(ward.id),
+                                                                    provinceId: province.id ?? "",
+                                                                    districtId: district.id ?? undefined,
+                                                                    wardId: ward.id ?? undefined,
                                                                 });
                                                                 (setText ?? setTxt)(
                                                                     `${getDisplayName(ward)}, ${getDisplayName(district)}, ${getDisplayName(province)}`,
@@ -168,8 +168,8 @@ export default function AddressSearch({
                                                         variant="ghost"
                                                         onClick={() => {
                                                             (setSelected ?? setSelectedBt)({
-                                                                provinceId: Number(province.id),
-                                                                districtId: Number(district.id),
+                                                                provinceId: province.id ?? "",
+                                                                districtId: district.id ?? undefined,
                                                             });
                                                             (setText ?? setTxt)(
                                                                 `${getDisplayName(district)}, ${getDisplayName(province)}`,
