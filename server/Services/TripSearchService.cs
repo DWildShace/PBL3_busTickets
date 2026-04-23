@@ -79,6 +79,7 @@ namespace Pbl3.Services
                 RouteName = t.Route.RouteName,
                 DepartureTime = t.DepartureTime,
                 ArrivalTime = t.ArrivalTime,
+                BasePrice = t.BasePrice,
                 TotalSeats = t.BusType.TotalSeats,
                 SoldSeats = t.Tickets.Count(ticket => ticket.Status != TicketStatus.Cancelled),
                 HeldSeats = t.SeatHolds.Count(hold =>
@@ -199,6 +200,7 @@ namespace Pbl3.Services
                         0,
                         (int)Math.Round((trip.ArrivalTime - trip.DepartureTime).TotalMinutes)
                     ),
+                    BasePrice = trip.BasePrice,
                     LowestPrice = trip.LowestPrice,
                     AvailableSeats = Math.Max(
                         0,
@@ -418,6 +420,8 @@ namespace Pbl3.Services
             public DateTime DepartureTime { get; set; }
 
             public DateTime ArrivalTime { get; set; }
+
+            public decimal BasePrice { get; set; }
 
             public int TotalSeats { get; set; }
 

@@ -548,7 +548,7 @@ function TicketCard({ ticket, onShowDetail }: { ticket: TripSearchItemDto; onSho
                 >
                     <Box className="text-right">
                         <Text size="5" weight="bold" color="blue" as="div">
-                            {formatCurrency(ticket.lowestPrice)}
+                            {formatCurrency(ticket.basePrice)}
                         </Text>
                     </Box>
 

@@ -21,6 +21,9 @@ namespace Pbl3.Models
         public DateTime ArrivalTime { get; set; }
         public TripStatus Status { get; set; }
 
+        [Required]
+        public decimal BasePrice { get; set; }
+
         public string? CancellationPolicy { get; set; }
         public string? Notes { get; set; }
 

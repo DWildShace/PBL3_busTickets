@@ -51,6 +51,8 @@ namespace Pbl3.Dtos
 
         public int AvailableSeats { get; set; }
 
+        public decimal BasePrice { get; set; }
+
         public decimal LowestPrice { get; set; }
 
         public double Rating { get; set; }

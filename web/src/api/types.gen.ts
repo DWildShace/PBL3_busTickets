@@ -238,6 +238,7 @@ export type TripDetailDto = {
     durationMinutes?: number;
     totalSeats?: number;
     availableSeats?: number;
+    basePrice?: number;
     lowestPrice?: number;
     rating?: number;
     reviewCount?: number;
@@ -301,6 +302,7 @@ export type TripSearchItemDto = {
     departureTime?: string;
     arrivalTime?: string;
     durationMinutes?: number;
+    basePrice?: number;
     lowestPrice?: number;
     availableSeats?: number;
     rating?: number;

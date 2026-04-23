@@ -218,7 +218,7 @@ export default function TripDetailDialog({ tripId, onClose }: TripDetailDialogPr
                                                             </Text>
                                                         </Flex>
                                                         <Text size="5" weight="bold" color="blue">
-                                                            {formatPrice(trip.lowestPrice)}
+                                                            {formatPrice(trip.basePrice)}
                                                         </Text>
                                                     </Flex>
                                                 </Card>
@@ -490,7 +490,7 @@ export default function TripDetailDialog({ tripId, onClose }: TripDetailDialogPr
                                         {t("search:detail_total_price")}
                                     </Text>
                                     <Text size="5" weight="bold" color="blue">
-                                        {formatPrice(trip.lowestPrice)}
+                                        {formatPrice(trip.basePrice)}
                                     </Text>
                                 </Box>
                                 <Button size="3" color="amber" style={{ minWidth: "150px" }}>

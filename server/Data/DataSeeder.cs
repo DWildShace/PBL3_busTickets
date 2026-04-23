@@ -1099,6 +1099,7 @@ namespace Pbl3.Data
                     DepartureTime = today.AddDays(1).Date.AddHours(7),
                     ArrivalTime = today.AddDays(1).Date.AddHours(15),
                     Status = TripStatus.Scheduled,
+                    BasePrice = 250000,
                 },
                 new Trip
                 {
@@ -1110,6 +1111,7 @@ namespace Pbl3.Data
                     DepartureTime = today.AddDays(1).Date.AddHours(22),
                     ArrivalTime = today.AddDays(2).Date.AddHours(6),
                     Status = TripStatus.Scheduled,
+                    BasePrice = 250000,
                 },
                 new Trip
                 {
@@ -1121,6 +1123,7 @@ namespace Pbl3.Data
                     DepartureTime = today.AddDays(2).Date.AddHours(7),
                     ArrivalTime = today.AddDays(2).Date.AddHours(15),
                     Status = TripStatus.Scheduled,
+                    BasePrice = 250000,
                 },
                 // HCM - Vung Tau trips
                 new Trip
@@ -1133,6 +1136,7 @@ namespace Pbl3.Data
                     DepartureTime = today.AddDays(1).Date.AddHours(8),
                     ArrivalTime = today.AddDays(1).Date.AddHours(10).AddMinutes(30),
                     Status = TripStatus.Scheduled,
+                    BasePrice = 250000,
                 },
                 new Trip
                 {
@@ -1144,6 +1148,7 @@ namespace Pbl3.Data
                     DepartureTime = today.AddDays(1).Date.AddHours(14),
                     ArrivalTime = today.AddDays(1).Date.AddHours(16).AddMinutes(30),
                     Status = TripStatus.Scheduled,
+                    BasePrice = 250000,
                 },
                 // HCM - Can Tho trips
                 new Trip
@@ -1156,6 +1161,7 @@ namespace Pbl3.Data
                     DepartureTime = today.AddDays(1).Date.AddHours(6),
                     ArrivalTime = today.AddDays(1).Date.AddHours(10),
                     Status = TripStatus.Scheduled,
+                    BasePrice = 250000,
                 },
                 new Trip
                 {
@@ -1167,6 +1173,7 @@ namespace Pbl3.Data
                     DepartureTime = today.AddDays(2).Date.AddHours(12),
                     ArrivalTime = today.AddDays(2).Date.AddHours(16),
                     Status = TripStatus.Scheduled,
+                    BasePrice = 250000,
                 },
                 // HCM - Nha Trang trips
                 new Trip
@@ -1179,6 +1186,7 @@ namespace Pbl3.Data
                     DepartureTime = today.AddDays(1).Date.AddHours(20),
                     ArrivalTime = today.AddDays(2).Date.AddHours(6),
                     Status = TripStatus.Scheduled,
+                    BasePrice = 250000,
                 },
                 // HCM - Da Nang trips
                 new Trip
@@ -1191,6 +1199,7 @@ namespace Pbl3.Data
                     DepartureTime = today.AddDays(3).Date.AddHours(18),
                     ArrivalTime = today.AddDays(4).Date.AddHours(12),
                     Status = TripStatus.Scheduled,
+                    BasePrice = 250000,
                 },
             };
 
