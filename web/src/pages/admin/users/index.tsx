@@ -32,7 +32,6 @@ import {
     getCoreRowModel,
     getFacetedRowModel,
     getFacetedUniqueValues,
-    getSortedRowModel,
     useReactTable,
     type ColumnDef,
     type ColumnFiltersState,
@@ -172,6 +171,7 @@ export function PageAdminUsers() {
 
     const roleFilterKey = roleFilterValues.join("|");
     const statusFilterKey = statusFilterValues.join("|");
+    const currentSort = sorting[0];
 
     useEffect(() => {
         const timer = window.setTimeout(() => {
@@ -202,6 +202,8 @@ export function PageAdminUsers() {
                 ...(debouncedSearch ? { q: debouncedSearch } : {}),
                 ...(roleFilterValues.length > 0 ? { roles: roleFilterValues } : {}),
                 ...(statusFilterValues.length > 0 ? { statuses: statusFilterValues } : {}),
+                ...(currentSort?.id ? { sortBy: currentSort.id } : {}),
+                ...(currentSort ? { sortDirection: currentSort.desc ? "desc" : "asc" } : {}),
                 page: pagination.pageIndex + 1,
                 pageSize: pagination.pageSize,
             },
@@ -212,7 +214,7 @@ export function PageAdminUsers() {
         }
 
         return response.data as AdminUsersListResponse;
-    }, [debouncedSearch, pagination.pageIndex, pagination.pageSize, roleFilterValues, statusFilterValues]);
+    }, [currentSort, debouncedSearch, pagination.pageIndex, pagination.pageSize, roleFilterValues, statusFilterValues]);
 
     const fetchUsers = useCallback(
         async (showRefreshing = hasLoadedOnceRef.current) => {
@@ -564,9 +566,9 @@ export function PageAdminUsers() {
         onPaginationChange: setPagination,
         manualPagination: true,
         manualFiltering: true,
+        manualSorting: true,
         pageCount: totalPages,
         getCoreRowModel: getCoreRowModel(),
-        getSortedRowModel: getSortedRowModel(),
         getFacetedRowModel: getFacetedRowModel(),
         getFacetedUniqueValues: getFacetedUniqueValues(),
     });

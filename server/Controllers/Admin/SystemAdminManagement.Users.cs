@@ -15,6 +15,8 @@ namespace Pbl3.Controllers.Admin
             [FromQuery] List<string>? statuses,
             [FromQuery] string? role,
             [FromQuery] bool? isActive,
+            [FromQuery] string? sortBy,
+            [FromQuery] string? sortDirection,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10
         )
@@ -116,8 +118,33 @@ namespace Pbl3.Controllers.Admin
                 filteredCount == 0 ? 1 : (int)Math.Ceiling(filteredCount / (double)pageSize);
             var safePage = Math.Min(page, totalPages);
 
+            var isDescending = !string.Equals(
+                sortDirection,
+                "asc",
+                StringComparison.OrdinalIgnoreCase
+            );
+
+            baseQuery = (sortBy ?? string.Empty).ToLowerInvariant() switch
+            {
+                "nguoidung" => isDescending
+                    ? baseQuery
+                        .OrderByDescending(u => u.FullName ?? u.Email)
+                        .ThenByDescending(u => u.Email)
+                    : baseQuery.OrderBy(u => u.FullName ?? u.Email).ThenBy(u => u.Email),
+                "vaitro" => isDescending
+                    ? baseQuery.OrderByDescending(u =>
+                        u.Role != null ? u.Role.RoleName : string.Empty
+                    )
+                    : baseQuery.OrderBy(u => u.Role != null ? u.Role.RoleName : string.Empty),
+                "trangthai" => isDescending
+                    ? baseQuery.OrderByDescending(u => u.IsActive)
+                    : baseQuery.OrderBy(u => u.IsActive),
+                _ => isDescending
+                    ? baseQuery.OrderByDescending(u => u.CreatedAt)
+                    : baseQuery.OrderBy(u => u.CreatedAt),
+            };
+
             var filteredUsers = await baseQuery
-                .OrderByDescending(u => u.CreatedAt)
                 .Skip((safePage - 1) * pageSize)
                 .Take(pageSize)
                 .Select(u => new

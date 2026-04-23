@@ -1159,6 +1159,8 @@ export type GetApiAdminSystemUsersData = {
         statuses?: Array<string>;
         role?: string;
         isActive?: boolean;
+        sortBy?: string;
+        sortDirection?: string;
         page?: number;
         pageSize?: number;
     };
