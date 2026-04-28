@@ -37,7 +37,9 @@ namespace Pbl3.Data
             await SeedRolesAsync();
             await SeedUsersAsync();
             await SeedBusCompaniesAsync();
+            await SeedAmenitiesAsync();
             await SeedBusTypesAsync();
+            await SeedBusTypeAmenitiesAsync();
             await SeedSeatLayoutsAsync();
             await SeedBusesAsync();
             await SeedBusImagesAsync();
@@ -312,6 +314,117 @@ namespace Pbl3.Data
             _logger.LogInformation("Seeded {Count} bus companies", companies.Count);
         }
 
+        private async Task SeedAmenitiesAsync()
+        {
+            var amenities = new List<Amenity>
+            {
+                new Amenity
+                {
+                    AmenityID = Guid.Parse("11111111-1111-1111-1111-111111111111"),
+                    Name = "Điều hòa",
+                    Description = "Hệ thống điều hòa nhiệt độ",
+                    IconName = "AirVent",
+                    Category = "Tiện nghi",
+                    DisplayOrder = 1,
+                    IsActive = true,
+                },
+                new Amenity
+                {
+                    AmenityID = Guid.Parse("22222222-2222-2222-2222-222222222222"),
+                    Name = "Wi-Fi",
+                    Description = "Kết nối internet không dây miễn phí",
+                    IconName = "Wifi",
+                    Category = "Giải trí",
+                    DisplayOrder = 10,
+                    IsActive = true,
+                },
+                new Amenity
+                {
+                    AmenityID = Guid.Parse("33333333-3333-3333-3333-333333333333"),
+                    Name = "Nước uống",
+                    Description = "Nước uống miễn phí",
+                    IconName = "Coffee",
+                    Category = "Đồ ăn & Nước uống",
+                    DisplayOrder = 20,
+                    IsActive = true,
+                },
+                new Amenity
+                {
+                    AmenityID = Guid.Parse("44444444-4444-4444-4444-444444444444"),
+                    Name = "Chăn",
+                    Description = "Chăn ấm",
+                    IconName = "Bed",
+                    Category = "Tiện nghi",
+                    DisplayOrder = 3,
+                    IsActive = true,
+                },
+                new Amenity
+                {
+                    AmenityID = Guid.Parse("55555555-5555-5555-5555-555555555555"),
+                    Name = "Gối",
+                    Description = "Gối êm ái",
+                    IconName = "Bed",
+                    Category = "Tiện nghi",
+                    DisplayOrder = 4,
+                    IsActive = true,
+                },
+                new Amenity
+                {
+                    AmenityID = Guid.Parse("66666666-6666-6666-6666-666666666666"),
+                    Name = "TV",
+                    Description = "Màn hình giải trí",
+                    IconName = "Tv",
+                    Category = "Giải trí",
+                    DisplayOrder = 11,
+                    IsActive = true,
+                },
+                new Amenity
+                {
+                    AmenityID = Guid.Parse("77777777-7777-7777-7777-777777777777"),
+                    Name = "Sạc điện thoại",
+                    Description = "Cổng sạc USB",
+                    IconName = "BatteryCharging",
+                    Category = "Giải trí",
+                    DisplayOrder = 13,
+                    IsActive = true,
+                },
+                new Amenity
+                {
+                    AmenityID = Guid.Parse("88888888-8888-8888-8888-888888888888"),
+                    Name = "Nhà vệ sinh",
+                    Description = "Nhà vệ sinh trên xe",
+                    IconName = "Bath",
+                    Category = "Đồ ăn & Nước uống",
+                    DisplayOrder = 23,
+                    IsActive = true,
+                },
+                new Amenity
+                {
+                    AmenityID = Guid.Parse("99999999-9999-9999-9999-999999999999"),
+                    Name = "Ghế ngả",
+                    Description = "Ghế ngả tiện nghi",
+                    IconName = "Armchair",
+                    Category = "Tiện nghi",
+                    DisplayOrder = 2,
+                    IsActive = true,
+                },
+                new Amenity
+                {
+                    AmenityID = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+                    Name = "Tiếp viên",
+                    Description = "Tiếp viên phục vụ",
+                    IconName = "UserCheck",
+                    Category = "Đồ ăn & Nước uống",
+                    DisplayOrder = 24,
+                    IsActive = true,
+                },
+            };
+
+            _context.Amenities.AddRange(amenities);
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Seeded {Count} amenities", amenities.Count);
+        }
+
         private async Task SeedBusTypesAsync()
         {
             var busTypes = new List<BusType>
@@ -342,6 +455,41 @@ namespace Pbl3.Data
             _context.BusTypes.AddRange(busTypes);
             await _context.SaveChangesAsync();
             _logger.LogInformation("Seeded {Count} bus types", busTypes.Count);
+        }
+
+        private async Task SeedBusTypeAmenitiesAsync()
+        {
+            var busType29 = await _context.BusTypes.FirstAsync(bt => bt.Name == "Giường nằm 29 chỗ");
+            var busType40 = await _context.BusTypes.FirstAsync(bt => bt.Name == "Ghế ngồi 40 chỗ");
+            var busType45 = await _context.BusTypes.FirstAsync(bt => bt.Name == "Ghế ngồi 45 chỗ");
+
+            var amenities = new List<BusTypeAmenity>
+            {
+                // Giường nằm 29 chỗ - Premium amenities
+                new BusTypeAmenity { BusTypeID = busType29.BusTypeID, AmenityID = Guid.Parse("11111111-1111-1111-1111-111111111111") }, // Điều hòa
+                new BusTypeAmenity { BusTypeID = busType29.BusTypeID, AmenityID = Guid.Parse("22222222-2222-2222-2222-222222222222") }, // Wi-Fi
+                new BusTypeAmenity { BusTypeID = busType29.BusTypeID, AmenityID = Guid.Parse("33333333-3333-3333-3333-333333333333") }, // Nước uống
+                new BusTypeAmenity { BusTypeID = busType29.BusTypeID, AmenityID = Guid.Parse("44444444-4444-4444-4444-444444444444") }, // Chăn
+                new BusTypeAmenity { BusTypeID = busType29.BusTypeID, AmenityID = Guid.Parse("55555555-5555-5555-5555-555555555555") }, // Gối
+                new BusTypeAmenity { BusTypeID = busType29.BusTypeID, AmenityID = Guid.Parse("66666666-6666-6666-6666-666666666666") }, // TV
+                new BusTypeAmenity { BusTypeID = busType29.BusTypeID, AmenityID = Guid.Parse("77777777-7777-7777-7777-777777777777") }, // Sạc điện thoại
+                new BusTypeAmenity { BusTypeID = busType29.BusTypeID, AmenityID = Guid.Parse("88888888-8888-8888-8888-888888888888") }, // Nhà vệ sinh
+                new BusTypeAmenity { BusTypeID = busType29.BusTypeID, AmenityID = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa") }, // Tiếp viên
+
+                // Ghế ngồi 40 chỗ - Standard amenities
+                new BusTypeAmenity { BusTypeID = busType40.BusTypeID, AmenityID = Guid.Parse("11111111-1111-1111-1111-111111111111") }, // Điều hòa
+                new BusTypeAmenity { BusTypeID = busType40.BusTypeID, AmenityID = Guid.Parse("33333333-3333-3333-3333-333333333333") }, // Nước uống
+                new BusTypeAmenity { BusTypeID = busType40.BusTypeID, AmenityID = Guid.Parse("99999999-9999-9999-9999-999999999999") }, // Ghế ngả
+                new BusTypeAmenity { BusTypeID = busType40.BusTypeID, AmenityID = Guid.Parse("77777777-7777-7777-7777-777777777777") }, // Sạc điện thoại
+
+                // Ghế ngồi 45 chỗ - Basic amenities
+                new BusTypeAmenity { BusTypeID = busType45.BusTypeID, AmenityID = Guid.Parse("11111111-1111-1111-1111-111111111111") }, // Điều hòa
+                new BusTypeAmenity { BusTypeID = busType45.BusTypeID, AmenityID = Guid.Parse("99999999-9999-9999-9999-999999999999") }, // Ghế ngả
+            };
+
+            _context.BusTypeAmenities.AddRange(amenities);
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Seeded {Count} bus type amenities", amenities.Count);
         }
 
         private async Task SeedSeatLayoutsAsync()
@@ -858,6 +1006,49 @@ namespace Pbl3.Data
             _context.RouteStops.AddRange(routeStops);
             await _context.SaveChangesAsync();
             _logger.LogInformation("Seeded {Count} route stops", routeStops.Count);
+
+            await UpdateRouteLocationCodesAsync();
+        }
+
+        private async Task UpdateRouteLocationCodesAsync()
+        {
+            var routes = await _context
+                .BusRoutes.Include(r => r.BusRouteStops)
+                .ThenInclude(stop => stop.Station)
+                .ToListAsync();
+
+            foreach (var route in routes)
+            {
+                var firstPickup = route
+                    .BusRouteStops.Where(stop => stop.IsPickUp)
+                    .OrderBy(stop => stop.StopOrder)
+                    .FirstOrDefault();
+
+                var lastDropoff = route
+                    .BusRouteStops.Where(stop => stop.IsDropOff)
+                    .OrderByDescending(stop => stop.StopOrder)
+                    .FirstOrDefault();
+
+                if (firstPickup?.Station != null)
+                {
+                    route.DepartureProvinceCode = firstPickup.Station.ProvinceCode;
+                    route.DepartureDistrictCode = firstPickup.Station.DistrictCode;
+                    route.DepartureWardCode = firstPickup.Station.WardCode;
+                }
+
+                if (lastDropoff?.Station != null)
+                {
+                    route.ArrivalProvinceCode = lastDropoff.Station.ProvinceCode;
+                    route.ArrivalDistrictCode = lastDropoff.Station.DistrictCode;
+                    route.ArrivalWardCode = lastDropoff.Station.WardCode;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            _logger.LogInformation(
+                "Updated location codes for {Count} routes",
+                routes.Count
+            );
         }
 
         private async Task SeedTripsAsync()
@@ -908,6 +1099,7 @@ namespace Pbl3.Data
                     DepartureTime = today.AddDays(1).Date.AddHours(7),
                     ArrivalTime = today.AddDays(1).Date.AddHours(15),
                     Status = TripStatus.Scheduled,
+                    BasePrice = 250000,
                 },
                 new Trip
                 {
@@ -919,6 +1111,7 @@ namespace Pbl3.Data
                     DepartureTime = today.AddDays(1).Date.AddHours(22),
                     ArrivalTime = today.AddDays(2).Date.AddHours(6),
                     Status = TripStatus.Scheduled,
+                    BasePrice = 250000,
                 },
                 new Trip
                 {
@@ -930,6 +1123,7 @@ namespace Pbl3.Data
                     DepartureTime = today.AddDays(2).Date.AddHours(7),
                     ArrivalTime = today.AddDays(2).Date.AddHours(15),
                     Status = TripStatus.Scheduled,
+                    BasePrice = 250000,
                 },
                 // HCM - Vung Tau trips
                 new Trip
@@ -942,6 +1136,7 @@ namespace Pbl3.Data
                     DepartureTime = today.AddDays(1).Date.AddHours(8),
                     ArrivalTime = today.AddDays(1).Date.AddHours(10).AddMinutes(30),
                     Status = TripStatus.Scheduled,
+                    BasePrice = 250000,
                 },
                 new Trip
                 {
@@ -953,6 +1148,7 @@ namespace Pbl3.Data
                     DepartureTime = today.AddDays(1).Date.AddHours(14),
                     ArrivalTime = today.AddDays(1).Date.AddHours(16).AddMinutes(30),
                     Status = TripStatus.Scheduled,
+                    BasePrice = 250000,
                 },
                 // HCM - Can Tho trips
                 new Trip
@@ -965,6 +1161,7 @@ namespace Pbl3.Data
                     DepartureTime = today.AddDays(1).Date.AddHours(6),
                     ArrivalTime = today.AddDays(1).Date.AddHours(10),
                     Status = TripStatus.Scheduled,
+                    BasePrice = 250000,
                 },
                 new Trip
                 {
@@ -976,6 +1173,7 @@ namespace Pbl3.Data
                     DepartureTime = today.AddDays(2).Date.AddHours(12),
                     ArrivalTime = today.AddDays(2).Date.AddHours(16),
                     Status = TripStatus.Scheduled,
+                    BasePrice = 250000,
                 },
                 // HCM - Nha Trang trips
                 new Trip
@@ -988,6 +1186,7 @@ namespace Pbl3.Data
                     DepartureTime = today.AddDays(1).Date.AddHours(20),
                     ArrivalTime = today.AddDays(2).Date.AddHours(6),
                     Status = TripStatus.Scheduled,
+                    BasePrice = 250000,
                 },
                 // HCM - Da Nang trips
                 new Trip
@@ -1000,6 +1199,7 @@ namespace Pbl3.Data
                     DepartureTime = today.AddDays(3).Date.AddHours(18),
                     ArrivalTime = today.AddDays(4).Date.AddHours(12),
                     Status = TripStatus.Scheduled,
+                    BasePrice = 250000,
                 },
             };
 
