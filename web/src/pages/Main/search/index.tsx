@@ -55,7 +55,6 @@ const DEFAULT_FILTERS: SearchFiltersState = {
     maxPrice: "",
 };
 
-
 function parseSearchQuery(searchParams: URLSearchParams): ParsedSearchQuery | null {
     const fromProvinceCode = searchParams.get("fp")?.trim() ?? "";
     const toProvinceCode = searchParams.get("tp")?.trim() ?? "";
@@ -280,7 +279,9 @@ function FilterSidebar({
                             onChange={(event) => onPriceChange("minPrice", event.target.value)}
                             placeholder={
                                 result.filters?.priceRange?.min !== undefined
-                                    ? t("search:filter_price_from", { price: formatCurrency(result.filters.priceRange.min) })
+                                    ? t("search:filter_price_from", {
+                                          price: formatCurrency(result.filters.priceRange.min),
+                                      })
                                     : t("search:filter_price_min_placeholder")
                             }
                         />
@@ -289,7 +290,9 @@ function FilterSidebar({
                             onChange={(event) => onPriceChange("maxPrice", event.target.value)}
                             placeholder={
                                 result.filters?.priceRange?.max !== undefined
-                                    ? t("search:filter_price_to", { price: formatCurrency(result.filters.priceRange.max) })
+                                    ? t("search:filter_price_to", {
+                                          price: formatCurrency(result.filters.priceRange.max),
+                                      })
                                     : t("search:filter_price_max_placeholder")
                             }
                         />
@@ -385,7 +388,15 @@ function FilterSidebar({
     );
 }
 
-function TicketCard({ ticket, onShowDetail }: { ticket: TripSearchItemDto; onShowDetail: (tripId: string) => void }) {
+function TicketCard({
+    ticket,
+    onShowDetail,
+    onSelectTrip,
+}: {
+    ticket: TripSearchItemDto;
+    onShowDetail: (tripId: string) => void;
+    onSelectTrip: (tripId: string) => void;
+}) {
     const { t } = useTranslation();
     const busCompanyName = ticket.busCompanyName ?? "--";
     const rating = ticket.rating ?? 0;
@@ -556,7 +567,13 @@ function TicketCard({ ticket, onShowDetail }: { ticket: TripSearchItemDto; onSho
                         <Text size="2" color={availableSeats < 5 ? "orange" : "green"}>
                             {t("search:ticket_available_seats", { count: availableSeats })}
                         </Text>
-                        <Button size="3" color="amber" variant="solid" style={{ cursor: "pointer", width: "100%" }}>
+                        <Button
+                            size="3"
+                            color="amber"
+                            variant="solid"
+                            style={{ cursor: "pointer", width: "100%" }}
+                            onClick={() => onSelectTrip(ticket.tripId ?? "")}
+                        >
                             {t("search:ticket_select_trip")}
                         </Button>
                         <Button
@@ -792,6 +809,7 @@ const PageMainSearch = observer(() => {
                                             key={ticket.tripId}
                                             ticket={ticket}
                                             onShowDetail={(tripId) => setSelectedTripId(tripId)}
+                                            onSelectTrip={(tripId) => navigate(`/booking/${tripId}`)}
                                         />
                                     ))}
                                 </Flex>
