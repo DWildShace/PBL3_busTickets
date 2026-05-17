@@ -202,6 +202,7 @@ export type CreateTripDto = {
     busID?: string | null;
     busTypeID?: string;
     departureDate?: string;
+    departureDates?: Array<string> | null;
     departureTime?: string;
     arrivalTime?: string;
     status?: TripStatus;

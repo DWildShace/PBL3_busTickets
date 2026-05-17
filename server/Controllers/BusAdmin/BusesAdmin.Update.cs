@@ -109,6 +109,11 @@ namespace Pbl3.Controllers.BusAdmin
                     return BadRequest(new { message = "Xe không thuộc nhà xe của bạn." });
             }
 
+            if (dto.DepartureDate < DateOnly.FromDateTime(DateTime.Today))
+            {
+                return BadRequest(new { message = "Ngày khởi hành phải từ hôm nay trở đi." });
+            }
+
             trip.RouteID = dto.RouteID;
             trip.BusID = dto.BusID;
             trip.BusTypeID = dto.BusTypeID;

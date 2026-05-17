@@ -96,22 +96,45 @@ namespace Pbl3.Controllers.BusAdmin
                     return BadRequest(new { message = "Xe không thuộc nhà xe của bạn." });
             }
 
-            var trip = new Trip
-            {
-                TripID = Guid.NewGuid(),
-                RouteID = dto.RouteID,
-                BusID = dto.BusID,
-                BusTypeID = dto.BusTypeID,
-                DepartureDate = dto.DepartureDate,
-                DepartureTime = dto.DepartureTime,
-                ArrivalTime = dto.ArrivalTime,
-                Status = dto.Status,
-            };
+            var departureDates = (
+                dto.DepartureDates != null && dto.DepartureDates.Count > 0
+                    ? dto.DepartureDates
+                    : [dto.DepartureDate]
+            )
+                .Distinct()
+                .OrderBy(date => date)
+                .ToList();
 
-            _context.Trips.Add(trip);
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            if (departureDates.Any(date => date < today))
+            {
+                return BadRequest(new { message = "Ngày khởi hành phải từ hôm nay trở đi." });
+            }
+
+            var trips = departureDates
+                .Select(departureDate => new Trip
+                {
+                    TripID = Guid.NewGuid(),
+                    RouteID = dto.RouteID,
+                    BusID = dto.BusID,
+                    BusTypeID = dto.BusTypeID,
+                    DepartureDate = departureDate,
+                    DepartureTime = dto.DepartureTime,
+                    ArrivalTime = dto.ArrivalTime,
+                    Status = dto.Status,
+                })
+                .ToList();
+
+            _context.Trips.AddRange(trips);
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Tạo chuyến xe thành công.", tripId = trip.TripID });
+            return Ok(
+                new
+                {
+                    message = "Tạo chuyến xe thành công.",
+                    tripIds = trips.Select(trip => trip.TripID),
+                }
+            );
         }
 
         [HttpDelete("trips/{tripId:guid}")]
