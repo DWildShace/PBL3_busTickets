@@ -204,17 +204,17 @@ const PageMainBooking = observer(() => {
             ...current,
             fullName:
                 current.fullName ||
-                store.user?.user?.currentPassenger.fullName ||
+                store.user?.user?.currentPassenger?.fullName ||
                 store.user?.user?.currentUser.fullName ||
                 "",
             phoneNumber:
                 current.phoneNumber ||
-                store.user?.user?.currentPassenger.phoneNumber ||
+                store.user?.user?.currentPassenger?.phoneNumber ||
                 store.user?.user?.currentUser.phoneNumber ||
                 "",
             email:
                 current.email ||
-                store.user?.user?.currentPassenger.email ||
+                store.user?.user?.currentPassenger?.email ||
                 store.user?.user?.currentUser.email ||
                 store.user?.user?.email ||
                 "",
