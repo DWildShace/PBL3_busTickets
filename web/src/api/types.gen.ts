@@ -189,6 +189,20 @@ export type CreateRefundRequestDto = {
     reason: string;
 };
 
+export type CreateReviewDto = {
+    bookingId: string;
+    tripId: string;
+    rating?: number;
+    comment?: string | null;
+};
+
+export type CreateReviewResponseDto = {
+    reviewId?: string;
+    status?: number;
+    createdAt?: string;
+    message?: string | null;
+};
+
 export type CreateSeatLayoutDto = {
     seatLabel?: string | null;
     floor?: number;
@@ -364,6 +378,20 @@ export type TripDetailRouteStopDto = {
     isPickUp?: boolean;
     isDropOff?: boolean;
     durationFromStart?: number;
+};
+
+export type TripReviewItemDto = {
+    reviewId?: string;
+    ratingScore?: number;
+    comment?: string | null;
+    reviewerName?: string | null;
+    createdAt?: string;
+};
+
+export type TripReviewsResponseDto = {
+    averageRating?: number;
+    totalReviews?: number;
+    items?: Array<TripReviewItemDto> | null;
 };
 
 export type TripRouteStopDto = {
@@ -2212,6 +2240,62 @@ export type GetApiTripsByTripIdSeatsResponses = {
 };
 
 export type GetApiTripsByTripIdSeatsResponse = GetApiTripsByTripIdSeatsResponses[keyof GetApiTripsByTripIdSeatsResponses];
+
+export type GetApiTripsByTripIdReviewsData = {
+    body?: never;
+    path: {
+        tripId: string;
+    };
+    query?: never;
+    url: '/api/trips/{tripId}/reviews';
+};
+
+export type GetApiTripsByTripIdReviewsErrors = {
+    /**
+     * Not Found
+     */
+    404: ProblemDetails;
+};
+
+export type GetApiTripsByTripIdReviewsError = GetApiTripsByTripIdReviewsErrors[keyof GetApiTripsByTripIdReviewsErrors];
+
+export type GetApiTripsByTripIdReviewsResponses = {
+    /**
+     * OK
+     */
+    200: TripReviewsResponseDto;
+};
+
+export type GetApiTripsByTripIdReviewsResponse = GetApiTripsByTripIdReviewsResponses[keyof GetApiTripsByTripIdReviewsResponses];
+
+export type PostApiReviewsData = {
+    body?: CreateReviewDto;
+    path?: never;
+    query?: never;
+    url: '/api/reviews';
+};
+
+export type PostApiReviewsErrors = {
+    /**
+     * Bad Request
+     */
+    400: ProblemDetails;
+    /**
+     * Not Found
+     */
+    404: ProblemDetails;
+};
+
+export type PostApiReviewsError = PostApiReviewsErrors[keyof PostApiReviewsErrors];
+
+export type PostApiReviewsResponses = {
+    /**
+     * Created
+     */
+    201: CreateReviewResponseDto;
+};
+
+export type PostApiReviewsResponse = PostApiReviewsResponses[keyof PostApiReviewsResponses];
 
 export type GetApiUserMeData = {
     body?: never;

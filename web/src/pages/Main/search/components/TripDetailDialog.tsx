@@ -1,5 +1,6 @@
-import { getApiTripsByTripId } from "@/api";
-import type { TripDetailDto } from "@/api";
+import { getApiTripsByTripId, getApiTripsByTripIdReviews } from "@/api";
+import type { TripDetailDto, TripReviewsResponseDto } from "@/api";
+import { parseApiErrorMessage } from "@/pages/Main/booking/utils";
 import AmenityIcon from "./AmenityIcon";
 import {
     Badge,
@@ -27,10 +28,39 @@ interface TripDetailDialogProps {
     onClose: () => void;
 }
 
+function ReviewStars({ rating }: { rating?: number }) {
+    const normalizedRating = Math.max(0, Math.min(5, rating ?? 0));
+
+    return (
+        <Flex align="center" gap="1">
+            {Array.from({ length: 5 }, (_, index) => {
+                const filled = index < normalizedRating;
+
+                return (
+                    <Star
+                        key={index}
+                        size={14}
+                        style={{
+                            color: filled ? "#f59e0b" : "#d1d5db",
+                            fill: filled ? "#f59e0b" : "transparent",
+                        }}
+                    />
+                );
+            })}
+            <Text size="1" color="gray">
+                {rating ?? 0}/5
+            </Text>
+        </Flex>
+    );
+}
+
 export default function TripDetailDialog({ tripId, onClose }: TripDetailDialogProps) {
     const { t } = useTranslation();
     const [trip, setTrip] = useState<TripDetailDto | null>(null);
     const [loading, setLoading] = useState(false);
+    const [reviews, setReviews] = useState<TripReviewsResponseDto | null>(null);
+    const [reviewsLoading, setReviewsLoading] = useState(false);
+    const [reviewsError, setReviewsError] = useState<string | null>(null);
 
     useEffect(() => {
         if (!tripId) {
@@ -75,6 +105,45 @@ export default function TripDetailDialog({ tripId, onClose }: TripDetailDialogPr
             active = false;
         };
     }, [tripId]);
+
+    useEffect(() => {
+        if (!tripId) {
+            return;
+        }
+
+        let active = true;
+
+        const fetchTripReviews = async () => {
+            setReviewsLoading(true);
+            setReviewsError(null);
+
+            try {
+                const response = await getApiTripsByTripIdReviews({ path: { tripId } });
+                if (!active) {
+                    return;
+                }
+
+                setReviews(response.data ?? { averageRating: 0, totalReviews: 0, items: [] });
+            } catch (error) {
+                if (!active) {
+                    return;
+                }
+
+                setReviews({ averageRating: 0, totalReviews: 0, items: [] });
+                setReviewsError(parseApiErrorMessage(error, t("search:detail_reviews_load_error")));
+            } finally {
+                if (active) {
+                    setReviewsLoading(false);
+                }
+            }
+        };
+
+        void fetchTripReviews();
+
+        return () => {
+            active = false;
+        };
+    }, [tripId, t]);
 
     const formatTime = (dateTime?: string) => {
         if (!dateTime) {
@@ -225,13 +294,25 @@ export default function TripDetailDialog({ tripId, onClose }: TripDetailDialogPr
 
                                                 <Tabs.Root defaultValue="pickup">
                                                     <Tabs.List>
-                                                        <Tabs.Trigger value="pickup">{t("search:detail_tab_pickup")}</Tabs.Trigger>
-                                                        <Tabs.Trigger value="dropoff">{t("search:detail_tab_dropoff")}</Tabs.Trigger>
-                                                        <Tabs.Trigger value="reviews">{t("search:detail_tab_reviews")}</Tabs.Trigger>
-                                                        <Tabs.Trigger value="policy">{t("search:detail_tab_policy")}</Tabs.Trigger>
-                                                        <Tabs.Trigger value="amenities">{t("search:detail_tab_amenities")}</Tabs.Trigger>
+                                                        <Tabs.Trigger value="pickup">
+                                                            {t("search:detail_tab_pickup")}
+                                                        </Tabs.Trigger>
+                                                        <Tabs.Trigger value="dropoff">
+                                                            {t("search:detail_tab_dropoff")}
+                                                        </Tabs.Trigger>
+                                                        <Tabs.Trigger value="reviews">
+                                                            {t("search:detail_tab_reviews")}
+                                                        </Tabs.Trigger>
+                                                        <Tabs.Trigger value="policy">
+                                                            {t("search:detail_tab_policy")}
+                                                        </Tabs.Trigger>
+                                                        <Tabs.Trigger value="amenities">
+                                                            {t("search:detail_tab_amenities")}
+                                                        </Tabs.Trigger>
                                                         {images.length > 0 && (
-                                                            <Tabs.Trigger value="images">{t("search:detail_tab_images")}</Tabs.Trigger>
+                                                            <Tabs.Trigger value="images">
+                                                                {t("search:detail_tab_images")}
+                                                            </Tabs.Trigger>
                                                         )}
                                                     </Tabs.List>
 
@@ -273,9 +354,15 @@ export default function TripDetailDialog({ tripId, onClose }: TripDetailDialogPr
                                                                                     <Flex align="center" gap="1">
                                                                                         <Clock size={12} />
                                                                                         <Text size="1" color="gray">
-                                                                                            {t("search:detail_duration_from_start", {
-                                                                                                duration: formatDuration(stop.durationFromStart),
-                                                                                            })}
+                                                                                            {t(
+                                                                                                "search:detail_duration_from_start",
+                                                                                                {
+                                                                                                    duration:
+                                                                                                        formatDuration(
+                                                                                                            stop.durationFromStart,
+                                                                                                        ),
+                                                                                                },
+                                                                                            )}
                                                                                         </Text>
                                                                                     </Flex>
                                                                                 )}
@@ -323,9 +410,15 @@ export default function TripDetailDialog({ tripId, onClose }: TripDetailDialogPr
                                                                                     <Flex align="center" gap="1">
                                                                                         <Clock size={12} />
                                                                                         <Text size="1" color="gray">
-                                                                                            {t("search:detail_duration_from_start", {
-                                                                                                duration: formatDuration(stop.durationFromStart),
-                                                                                            })}
+                                                                                            {t(
+                                                                                                "search:detail_duration_from_start",
+                                                                                                {
+                                                                                                    duration:
+                                                                                                        formatDuration(
+                                                                                                            stop.durationFromStart,
+                                                                                                        ),
+                                                                                                },
+                                                                                            )}
                                                                                         </Text>
                                                                                     </Flex>
                                                                                 )}
@@ -337,11 +430,118 @@ export default function TripDetailDialog({ tripId, onClose }: TripDetailDialogPr
                                                         </Tabs.Content>
 
                                                         <Tabs.Content value="reviews">
-                                                            <Card>
-                                                                <Text size="2" color="gray">
-                                                                    {t("search:detail_reviews_coming_soon")}
-                                                                </Text>
-                                                            </Card>
+                                                            <Flex direction="column" gap="3">
+                                                                <Card>
+                                                                    <Flex
+                                                                        justify="between"
+                                                                        align="center"
+                                                                        gap="4"
+                                                                        wrap="wrap"
+                                                                    >
+                                                                        <Box>
+                                                                            <Text size="1" color="gray">
+                                                                                {t("search:detail_reviews_average")}
+                                                                            </Text>
+                                                                            <Flex align="center" gap="2" mt="1">
+                                                                                <Text size="6" weight="bold">
+                                                                                    {(
+                                                                                        reviews?.averageRating ??
+                                                                                        trip.rating ??
+                                                                                        0
+                                                                                    ).toFixed(1)}
+                                                                                </Text>
+                                                                                <ReviewStars
+                                                                                    rating={Math.round(
+                                                                                        reviews?.averageRating ??
+                                                                                            trip.rating ??
+                                                                                            0,
+                                                                                    )}
+                                                                                />
+                                                                            </Flex>
+                                                                        </Box>
+                                                                        <Box>
+                                                                            <Text size="1" color="gray">
+                                                                                {t("search:detail_reviews_total")}
+                                                                            </Text>
+                                                                            <Text size="5" weight="bold" mt="1">
+                                                                                {reviews?.totalReviews ??
+                                                                                    trip.reviewCount ??
+                                                                                    0}
+                                                                            </Text>
+                                                                        </Box>
+                                                                    </Flex>
+                                                                </Card>
+
+                                                                {reviewsLoading ? (
+                                                                    <Flex direction="column" gap="3">
+                                                                        <Skeleton height="96px" />
+                                                                        <Skeleton height="96px" />
+                                                                    </Flex>
+                                                                ) : reviewsError ? (
+                                                                    <Card>
+                                                                        <Text size="2" color="red">
+                                                                            {reviewsError}
+                                                                        </Text>
+                                                                    </Card>
+                                                                ) : (reviews?.items?.length ?? 0) > 0 ? (
+                                                                    <Flex direction="column" gap="3">
+                                                                        {(reviews?.items ?? []).map((review) => (
+                                                                            <Card key={review.reviewId}>
+                                                                                <Flex direction="column" gap="2">
+                                                                                    <Flex
+                                                                                        justify="between"
+                                                                                        align="start"
+                                                                                        gap="3"
+                                                                                        wrap="wrap"
+                                                                                    >
+                                                                                        <Box>
+                                                                                            <Text
+                                                                                                size="3"
+                                                                                                weight="medium"
+                                                                                            >
+                                                                                                {review.reviewerName ||
+                                                                                                    t(
+                                                                                                        "search:detail_reviews_anonymous",
+                                                                                                    )}
+                                                                                            </Text>
+                                                                                            <Text size="1" color="gray">
+                                                                                                {review.createdAt
+                                                                                                    ? format(
+                                                                                                          new Date(
+                                                                                                              review.createdAt,
+                                                                                                          ),
+                                                                                                          "dd/MM/yyyy HH:mm",
+                                                                                                      )
+                                                                                                    : "--"}
+                                                                                            </Text>
+                                                                                        </Box>
+                                                                                        <ReviewStars
+                                                                                            rating={review.ratingScore}
+                                                                                        />
+                                                                                    </Flex>
+                                                                                    <Text
+                                                                                        size="2"
+                                                                                        style={{
+                                                                                            whiteSpace: "pre-line",
+                                                                                        }}
+                                                                                    >
+                                                                                        {review.comment ||
+                                                                                            t(
+                                                                                                "search:detail_reviews_no_comment",
+                                                                                            )}
+                                                                                    </Text>
+                                                                                </Flex>
+                                                                            </Card>
+                                                                        ))}
+                                                                    </Flex>
+                                                                ) : (
+                                                                    <Card>
+                                                                        <Text size="2" color="gray">
+                                                                            {t("search:detail_reviews_empty")}
+                                                                        </Text>
+                                                                    </Card>
+                                                                )}
+                                                            </Flex>
                                                         </Tabs.Content>
 
                                                         <Tabs.Content value="policy">

@@ -1513,6 +1513,8 @@ namespace Pbl3.Data
                     TripID = tripDaLatMorning.TripID,
                     RatingScore = 5,
                     Comment = "Xe sạch sẽ, tài xế chạy đúng giờ và nhân viên hỗ trợ tốt.",
+                    UserID = paidBooking.UserID,
+                    Status = ReviewStatus.Approved,
                 },
             };
 

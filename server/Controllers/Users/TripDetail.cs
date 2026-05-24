@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Pbl3.Data;
 using Pbl3.Dtos;
 using Pbl3.Enums;
+using Pbl3.Services;
 
 namespace Pbl3.Controllers
 {
@@ -13,10 +14,15 @@ namespace Pbl3.Controllers
     public class TripDetailController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly ICurrentUserContext _currentUserContext;
 
-        public TripDetailController(ApplicationDbContext context)
+        public TripDetailController(
+            ApplicationDbContext context,
+            ICurrentUserContext currentUserContext
+        )
         {
             _context = context;
+            _currentUserContext = currentUserContext;
         }
 
         [HttpGet("{tripId:guid}")]
@@ -66,8 +72,11 @@ namespace Pbl3.Controllers
                         .Select(ticket => (decimal?)ticket.FinalPrice)
                         .Min()
                         ?? 0,
-                    Rating = t.Reviews.Select(review => (double?)review.RatingScore).Average() ?? 0,
-                    ReviewCount = t.Reviews.Count(),
+                    Rating = t.Reviews.Where(review => review.Status == ReviewStatus.Approved)
+                        .Select(review => (double?)review.RatingScore)
+                        .Average()
+                        ?? 0,
+                    ReviewCount = t.Reviews.Count(review => review.Status == ReviewStatus.Approved),
                     Images = t.Bus != null
                         ? t
                             .Bus.BusImages.OrderBy(img => img.ImageID)
@@ -217,6 +226,120 @@ namespace Pbl3.Controllers
             }
 
             return Ok(await BuildTripSeatsAsync(trip.TripID, trip.BusTypeID, DateTime.UtcNow));
+        }
+
+        [HttpGet("{tripId:guid}/reviews")]
+        [AllowAnonymous]
+        [ProducesResponseType(typeof(TripReviewsResponseDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetTripReviews(Guid tripId)
+        {
+            var tripExists = await _context.Trips.AsNoTracking().AnyAsync(t => t.TripID == tripId);
+
+            if (!tripExists)
+            {
+                return NotFound(new { message = "Trip not found" });
+            }
+
+            var reviews = await _context
+                .Reviews.AsNoTracking()
+                .Where(r => r.TripID == tripId && r.Status == ReviewStatus.Approved)
+                .OrderByDescending(r => r.CreatedAt)
+                .Select(r => new TripReviewItemDto
+                {
+                    ReviewId = r.ReviewID,
+                    RatingScore = r.RatingScore,
+                    Comment = r.Comment,
+                    ReviewerName =
+                        !string.IsNullOrWhiteSpace(r.User!.FullName) ? r.User.FullName!
+                        : !string.IsNullOrWhiteSpace(r.Booking!.ContactName) ? r.Booking.ContactName
+                        : r.Booking!.ContactEmail,
+                    CreatedAt = r.CreatedAt,
+                })
+                .ToListAsync();
+
+            return Ok(
+                new TripReviewsResponseDto
+                {
+                    AverageRating = reviews.Count > 0 ? reviews.Average(r => r.RatingScore) : 0,
+                    TotalReviews = reviews.Count,
+                    Items = reviews,
+                }
+            );
+        }
+
+        [HttpPost("/api/reviews")]
+        [Authorize(Policy = "UserOnly")]
+        [ProducesResponseType(typeof(CreateReviewResponseDto), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> CreateReview([FromBody] CreateReviewDto dto)
+        {
+            var userId = _currentUserContext.GetRequiredUserId();
+
+            var booking = await _context
+                .Bookings.Include(b => b.Tickets)
+                .FirstOrDefaultAsync(b => b.BookingID == dto.BookingId && b.UserID == userId);
+
+            if (booking == null)
+            {
+                return NotFound(new { message = "Booking not found" });
+            }
+
+            var hasTripTicket = booking.Tickets.Any(ticket => ticket.TripID == dto.TripId);
+            if (!hasTripTicket)
+            {
+                return BadRequest(new { message = "Booking does not belong to this trip" });
+            }
+
+            if (booking.Status != BookingStatus.Paid)
+            {
+                return BadRequest(new { message = "Only paid bookings can be reviewed" });
+            }
+
+            var trip = await _context.Trips.FirstOrDefaultAsync(t => t.TripID == dto.TripId);
+            if (trip == null)
+            {
+                return NotFound(new { message = "Trip not found" });
+            }
+
+            if (trip.Status != TripStatus.Completed && trip.ArrivalTime > DateTime.UtcNow)
+            {
+                return BadRequest(new { message = "You can only review completed trips" });
+            }
+
+            var alreadyReviewed = await _context.Reviews.AnyAsync(r =>
+                r.BookingID == dto.BookingId && r.TripID == dto.TripId
+            );
+            if (alreadyReviewed)
+            {
+                return BadRequest(new { message = "You have already reviewed this trip" });
+            }
+
+            var review = new Models.Review
+            {
+                BookingID = dto.BookingId,
+                TripID = dto.TripId,
+                RatingScore = dto.Rating,
+                Comment = string.IsNullOrWhiteSpace(dto.Comment) ? null : dto.Comment.Trim(),
+                UserID = userId,
+                Status = ReviewStatus.Pending,
+                CreatedAt = DateTime.UtcNow,
+            };
+
+            _context.Reviews.Add(review);
+            await _context.SaveChangesAsync();
+
+            return Created(
+                $"/api/reviews/{review.ReviewID}",
+                new CreateReviewResponseDto
+                {
+                    ReviewId = review.ReviewID,
+                    Status = (int)review.Status,
+                    CreatedAt = review.CreatedAt,
+                    Message = "Review submitted successfully and is awaiting approval",
+                }
+            );
         }
 
         private async Task<List<TripSeatDto>> BuildTripSeatsAsync(

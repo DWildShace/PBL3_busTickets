@@ -95,8 +95,12 @@ namespace Pbl3.Services
                         .Select(ticket => (decimal?)ticket.FinalPrice)
                         .Min()
                     ?? 0,
-                Rating = t.Reviews.Select(review => (double?)review.RatingScore).Average() ?? 0,
-                ReviewCount = t.Reviews.Count(),
+                Rating =
+                    t.Reviews.Where(review => review.Status == ReviewStatus.Approved)
+                        .Select(review => (double?)review.RatingScore)
+                        .Average()
+                    ?? 0,
+                ReviewCount = t.Reviews.Count(review => review.Status == ReviewStatus.Approved),
                 DepartureProvinceCode = t.Route.DepartureProvinceCode,
                 DepartureDistrictCode = t.Route.DepartureDistrictCode,
                 DepartureWardCode = t.Route.DepartureWardCode,

@@ -1,5 +1,7 @@
-import { getApiPassengerTickets, postApiPassengerTicketsByTicketIdRefund } from "@/api";
+import { getApiPassengerTickets, postApiPassengerTicketsByTicketIdRefund, postApiReviews } from "@/api";
+import { parseApiErrorMessage } from "@/pages/Main/booking/utils";
 import {
+    Blockquote,
     Container,
     Heading,
     Table,
@@ -16,8 +18,10 @@ import {
     Callout,
     Separator,
 } from "@radix-ui/themes";
+import { Star } from "lucide-react";
 import { observer } from "mobx-react-lite";
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { useStore } from "@/stores";
 import LoginDialog from "@/dialogs/Login";
 
@@ -111,6 +115,14 @@ function getBookingId(ticket: PassengerTicket) {
     return ticket.bookingID || ticket.bookingId || "";
 }
 
+function getTripId(ticket: PassengerTicket) {
+    return ticket.tripID || ticket.tripId || "";
+}
+
+function isAlreadyReviewedMessage(message: string) {
+    return message.toLowerCase().includes("already reviewed");
+}
+
 function DetailItem({ label, value }: { label: string; value: unknown }) {
     return (
         <Box>
@@ -134,6 +146,13 @@ const PageManageOrders = observer(() => {
     const [refundError, setRefundError] = useState("");
     const [refundSuccess, setRefundSuccess] = useState("");
     const [isRefunding, setIsRefunding] = useState(false);
+    const [reviewRating, setReviewRating] = useState(5);
+    const [reviewComment, setReviewComment] = useState("");
+    const [reviewError, setReviewError] = useState("");
+    const [reviewSuccess, setReviewSuccess] = useState("");
+    const [submittedReviewBookingIds, setSubmittedReviewBookingIds] = useState<string[]>([]);
+    const [duplicateReviewBookingIds, setDuplicateReviewBookingIds] = useState<string[]>([]);
+    const [isSubmittingReview, setIsSubmittingReview] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(false);
 
@@ -170,6 +189,10 @@ const PageManageOrders = observer(() => {
         setRefundReason("");
         setRefundError("");
         setRefundSuccess("");
+        setReviewRating(5);
+        setReviewComment("");
+        setReviewError("");
+        setReviewSuccess("");
     };
 
     const handleRefund = async () => {
@@ -215,6 +238,68 @@ const PageManageOrders = observer(() => {
             setRefundError(err instanceof Error ? err.message : "Không thể gửi yêu cầu hoàn tiền.");
         } finally {
             setIsRefunding(false);
+        }
+    };
+
+    const handleSubmitReview = async () => {
+        if (!selectedTicket) return;
+
+        const bookingId = getBookingId(selectedTicket);
+        const tripId = getTripId(selectedTicket);
+
+        if (!bookingId || !tripId) {
+            setReviewError("Thiếu thông tin chuyến đi để gửi đánh giá.");
+            return;
+        }
+
+        if (reviewRating < 1 || reviewRating > 5) {
+            setReviewError("Vui lòng chọn số sao đánh giá từ 1 đến 5.");
+            return;
+        }
+
+        setIsSubmittingReview(true);
+        setReviewError("");
+        setReviewSuccess("");
+
+        try {
+            const response = await postApiReviews({
+                body: {
+                    bookingId,
+                    tripId,
+                    rating: reviewRating,
+                    comment: reviewComment.trim() || undefined,
+                },
+            });
+
+            if (response.error) {
+                throw response.error;
+            }
+
+            const message =
+                response.data?.message || "Đã gửi đánh giá thành công. Đánh giá sẽ hiển thị sau khi được duyệt.";
+
+            setSubmittedReviewBookingIds((current) =>
+                current.includes(bookingId) ? current : [...current, bookingId],
+            );
+            setReviewSuccess(message);
+            setReviewComment("");
+            toast.success(message);
+        } catch (err) {
+            const message = parseApiErrorMessage(err, "Không thể gửi đánh giá.");
+
+            if (isAlreadyReviewedMessage(message)) {
+                setDuplicateReviewBookingIds((current) =>
+                    current.includes(bookingId) ? current : [...current, bookingId],
+                );
+                setReviewError("Bạn đã đánh giá chuyến đi này rồi.");
+                toast.error("Bạn đã đánh giá chuyến đi này rồi.");
+                return;
+            }
+
+            setReviewError(message);
+            toast.error(message);
+        } finally {
+            setIsSubmittingReview(false);
         }
     };
 
@@ -266,6 +351,12 @@ const PageManageOrders = observer(() => {
     const tickets = data;
     const selectedTicketId = selectedTicket ? getTicketId(selectedTicket) : "";
     const selectedBookingId = selectedTicket ? getBookingId(selectedTicket) : "";
+    const selectedTripId = selectedTicket ? getTripId(selectedTicket) : "";
+    const canReviewSelectedTicket = selectedTicket?.status === 2 && !!selectedBookingId && !!selectedTripId;
+    const hasSubmittedReviewSelectedTicket =
+        !!selectedBookingId && submittedReviewBookingIds.includes(selectedBookingId);
+    const hasDuplicateReviewSelectedTicket =
+        !!selectedBookingId && duplicateReviewBookingIds.includes(selectedBookingId);
 
     return (
         <Container size="4" px="4" py="8">
@@ -466,6 +557,103 @@ const PageManageOrders = observer(() => {
                                             </Button>
                                         </Dialog.Close>
                                     </Flex>
+                                )}
+                            </Box>
+
+                            <Separator size="4" />
+
+                            <Box>
+                                <Heading size="3" mb="3">
+                                    Đánh giá chuyến đi
+                                </Heading>
+
+                                {canReviewSelectedTicket && !hasDuplicateReviewSelectedTicket ? (
+                                    <Flex direction="column" gap="3">
+                                        <Text size="2" color="gray">
+                                            Hãy chia sẻ trải nghiệm của bạn sau chuyến đi này.
+                                        </Text>
+
+                                        <Flex direction="column" gap="2">
+                                            <Text size="2" weight="medium">
+                                                Số sao
+                                            </Text>
+                                            <Flex gap="2">
+                                                {Array.from({ length: 5 }, (_, index) => {
+                                                    const value = index + 1;
+                                                    const active = value <= reviewRating;
+
+                                                    return (
+                                                        <Button
+                                                            key={value}
+                                                            type="button"
+                                                            variant="ghost"
+                                                            color={active ? "amber" : "gray"}
+                                                            onClick={() => setReviewRating(value)}
+                                                            disabled={hasSubmittedReviewSelectedTicket}
+                                                            style={{ padding: 4 }}
+                                                        >
+                                                            <Star
+                                                                size={20}
+                                                                style={{
+                                                                    color: active ? "#f59e0b" : "#9ca3af",
+                                                                    fill: active ? "#f59e0b" : "transparent",
+                                                                }}
+                                                            />
+                                                        </Button>
+                                                    );
+                                                })}
+                                            </Flex>
+                                        </Flex>
+
+                                        <Flex direction="column" gap="2">
+                                            <Text size="2" weight="medium">
+                                                Nhận xét
+                                            </Text>
+                                            <TextArea
+                                                placeholder="Chia sẻ trải nghiệm chuyến đi của bạn..."
+                                                value={reviewComment}
+                                                disabled={hasSubmittedReviewSelectedTicket}
+                                                onChange={(event) => setReviewComment(event.target.value)}
+                                            />
+                                        </Flex>
+
+                                        {reviewSuccess && (
+                                            <Callout.Root color="green">
+                                                <Callout.Text>{reviewSuccess}</Callout.Text>
+                                            </Callout.Root>
+                                        )}
+
+                                        {reviewError && (
+                                            <Callout.Root color="red">
+                                                <Callout.Text>{reviewError}</Callout.Text>
+                                            </Callout.Root>
+                                        )}
+
+                                        <Blockquote color="gray">
+                                            Đánh giá của bạn sẽ được kiểm duyệt trước khi hiển thị công khai.
+                                        </Blockquote>
+
+                                        <Flex justify="end">
+                                            <Button
+                                                onClick={handleSubmitReview}
+                                                disabled={isSubmittingReview || hasSubmittedReviewSelectedTicket}
+                                            >
+                                                {hasSubmittedReviewSelectedTicket
+                                                    ? "Đã gửi đánh giá"
+                                                    : isSubmittingReview
+                                                      ? "Đang gửi đánh giá..."
+                                                      : "Gửi đánh giá"}
+                                            </Button>
+                                        </Flex>
+                                    </Flex>
+                                ) : hasDuplicateReviewSelectedTicket ? (
+                                    <Callout.Root color="amber">
+                                        <Callout.Text>Bạn đã đánh giá chuyến đi này rồi.</Callout.Text>
+                                    </Callout.Root>
+                                ) : (
+                                    <Text size="2" color="gray">
+                                        Chỉ có thể đánh giá những vé đã sử dụng.
+                                    </Text>
                                 )}
                             </Box>
                         </Flex>

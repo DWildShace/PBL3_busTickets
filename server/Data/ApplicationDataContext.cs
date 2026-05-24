@@ -59,6 +59,7 @@ namespace Pbl3.Data
             modelBuilder.HasPostgresEnum<PaymentProvider>();
             modelBuilder.HasPostgresEnum<PaymentIntentStatus>();
             modelBuilder.HasPostgresEnum<RefundStatus>();
+            modelBuilder.HasPostgresEnum<ReviewStatus>();
             modelBuilder.HasPostgresEnum<NotificationType>();
             modelBuilder.HasPostgresEnum<NotificationStatus>();
 

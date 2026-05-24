@@ -102,6 +102,7 @@ namespace Pbl3
             dataSourceBuilder.MapEnum<PaymentProvider>();
             dataSourceBuilder.MapEnum<PaymentIntentStatus>();
             dataSourceBuilder.MapEnum<RefundStatus>();
+            dataSourceBuilder.MapEnum<ReviewStatus>();
             dataSourceBuilder.MapEnum<NotificationType>();
             dataSourceBuilder.MapEnum<NotificationStatus>();
             var dataSource = dataSourceBuilder.Build();
