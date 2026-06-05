@@ -1,0 +1,27 @@
+{
+  "enabledPlugins": {
+    "frontend-design@claude-plugins-official": true,
+    "code-review@claude-plugins-official": true,
+    "github@claude-plugins-official": true
+  },
+  "mcpServers": {
+    "sqlite": {
+      "command": "node",
+      "args": [
+        "C:\\tmp\\servers-archived\\src\\sqlite\\dist\\index.js"
+      ]
+    },
+    "fetch": {
+      "command": "node",
+      "args": [
+        "C:\\tmp\\mcp-servers\\src\\fetch\\dist\\index.js"
+      ]
+    },
+    "git": {
+      "command": "node",
+      "args": [
+        "C:\\tmp\\mcp-servers\\src\\git\\dist\\index.js"
+      ]
+    }
+  }
+}

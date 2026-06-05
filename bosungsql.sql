@@ -33,10 +33,13 @@ BEGIN
         v_user_id := gen_random_uuid();
         -- PasswordHash can be a dummy hash if they use external login or they can reset it.
         INSERT INTO "Users" ("UserID", "RoleID", "PasswordHash", "Email", "FullName", "PhoneNumber", "IsActive", "CreatedAt")
-        VALUES (v_user_id, v_role_id, '', 'ssonhellonguyen1000@gmail.com', 'Ssonhello Nguyen', '0999999999', true, NOW());
+        VALUES (v_user_id, v_role_id, 'AQAAAAIAAYagAAAAELoWJqkWc7atAJm/mrAip+sAG8LuKTU84IGMFYLcgHEdKMDwR64BICpbtsjQkg/oDA==', 'ssonhellonguyen1000@gmail.com', 'Ssonhello Nguyen', '0999999999', true, NOW());
     ELSE
-        -- Ensure user has BusAdmin role
-        UPDATE "Users" SET "RoleID" = v_role_id WHERE "UserID" = v_user_id;
+        -- Ensure user has BusAdmin role and password hash if empty
+        UPDATE "Users" 
+        SET "RoleID" = v_role_id, 
+            "PasswordHash" = CASE WHEN "PasswordHash" = '' OR "PasswordHash" IS NULL THEN 'AQAAAAIAAYagAAAAELoWJqkWc7atAJm/mrAip+sAG8LuKTU84IGMFYLcgHEdKMDwR64BICpbtsjQkg/oDA==' ELSE "PasswordHash" END
+        WHERE "UserID" = v_user_id;
     END IF;
 
     -- 3. Create Bus Company
