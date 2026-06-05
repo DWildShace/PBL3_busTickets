@@ -275,6 +275,16 @@ namespace Pbl3.Services.Admin
             var averageTicketPrice =
                 currentSoldTickets == 0 ? 0m : Math.Round(currentRevenue / currentSoldTickets, 0);
 
+            var totalRevenueFromTickets =
+                (
+                    await _context
+                        .Tickets.AsNoTracking()
+                        .Where(t =>
+                            t.Status == TicketStatus.Issued || t.Status == TicketStatus.CheckedIn
+                        )
+                        .SumAsync(t => (decimal?)t.FinalPrice)
+                ) ?? 0m;
+
             return new AdminDashboardOverviewDto
             {
                 CurrentMonthLabel = $"Tháng {currentMonthStart.Month}/{currentMonthStart.Year}",
@@ -294,6 +304,7 @@ namespace Pbl3.Services.Admin
                     PendingUpgradeRequests = pendingUpgradeRequests,
                     CancellationRatePercent = cancellationRate,
                     AverageTicketPrice = averageTicketPrice,
+                    TotalRevenueFromTickets = totalRevenueFromTickets,
                 },
                 MonthlyStats = monthlyStats,
                 DailyStats = dailyStats,

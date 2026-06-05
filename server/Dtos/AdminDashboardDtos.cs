@@ -36,6 +36,7 @@ namespace Pbl3.Dtos
         public int PendingUpgradeRequests { get; set; }
         public decimal CancellationRatePercent { get; set; }
         public decimal AverageTicketPrice { get; set; }
+        public decimal TotalRevenueFromTickets { get; set; }
     }
 
     public class AdminDashboardMonthlyStatDto

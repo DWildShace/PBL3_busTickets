@@ -285,7 +285,16 @@ export default function PageAdminIndex() {
                         </Card>
                     </div>
 
-                    <div className="grid gap-4 lg:grid-cols-3">
+                    <div className="grid gap-4 lg:grid-cols-4">
+                        <MetricMiniCard
+                            title="Tổng doanh thu từ vé"
+                            value={currencyFormatter.format(dashboard?.snapshot?.totalRevenueFromTickets ?? 0)}
+                            description={`Từ ${numberFormatter.format(
+                                dashboard?.snapshot?.totalUsers ?? 0
+                            )} người dùng`}
+                            loading={loading}
+                            highlight
+                        />
                         <MetricMiniCard
                             title="Tổng doanh nghiệp"
                             value={numberFormatter.format(dashboard?.snapshot?.totalCompanies ?? 0)}
@@ -324,16 +333,26 @@ function MetricMiniCard({
     value,
     description,
     loading,
+    highlight = false,
 }: {
     title: string;
     value: string;
     description: string;
     loading: boolean;
+    highlight?: boolean;
 }) {
     return (
-        <Card>
+        <Card
+            className={
+                highlight
+                    ? "border-2 border-green-500/50 bg-green-50/50 dark:border-green-500/30 dark:bg-green-950/20"
+                    : ""
+            }
+        >
             <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">{title}</CardTitle>
+                <CardTitle className={`text-sm font-medium ${highlight ? "text-green-700 dark:text-green-400" : ""}`}>
+                    {title}
+                </CardTitle>
             </CardHeader>
             <CardContent>
                 {loading ? (
@@ -343,7 +362,9 @@ function MetricMiniCard({
                     </>
                 ) : (
                     <>
-                        <div className="text-2xl font-bold">{value}</div>
+                        <div className={`text-2xl font-bold ${highlight ? "text-green-700 dark:text-green-400" : ""}`}>
+                            {value}
+                        </div>
                         <p className="text-xs text-muted-foreground">{description}</p>
                     </>
                 )}
@@ -355,7 +376,7 @@ function MetricMiniCard({
 function formatDelta(kpi: AdminDashboardKpiDto | undefined, suffix: string, isCurrency = false) {
     const percent = kpi?.deltaPercent ?? 0;
     const delta = kpi?.delta ?? 0;
-    const sign = delta > 0 ? "+" : delta < 0 ? "" : "±";
+    const sign = delta > 0 ? "+" : delta < 0 ? "−" : "±";
     const formattedDelta = isCurrency
         ? currencyFormatter.format(Math.abs(delta))
         : numberFormatter.format(Math.abs(Math.round(delta)));
