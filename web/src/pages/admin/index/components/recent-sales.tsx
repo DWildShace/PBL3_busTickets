@@ -93,8 +93,8 @@ function formatStatus(status?: string | null) {
             return "Chờ thanh toán";
         case "Cancelled":
             return "Đã hủy";
-        case "Completed":
-            return "Hoàn tất";
+        case "Refunded":
+            return "Đã hoàn tiền";
         default:
             return status || "Không xác định";
     }
