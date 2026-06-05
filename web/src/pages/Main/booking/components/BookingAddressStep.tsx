@@ -85,7 +85,7 @@ export default function BookingAddressStep({
                         {pickupLabel}
                     </Text>
                     <Select.Root
-                        value={form.pickupStopId || undefined}
+                        value={form.pickupStopId}
                         onValueChange={(value) => updateField("pickupStopId", value)}
                         disabled={!pickupOptions.length}
                     >
@@ -115,7 +115,7 @@ export default function BookingAddressStep({
                         {dropoffLabel}
                     </Text>
                     <Select.Root
-                        value={form.dropoffStopId || undefined}
+                        value={form.dropoffStopId}
                         onValueChange={(value) => updateField("dropoffStopId", value)}
                         disabled={!dropoffOptions.length}
                     >
