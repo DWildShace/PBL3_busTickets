@@ -72,6 +72,7 @@ export type AdminDashboardSnapshotDto = {
     pendingUpgradeRequests?: number;
     cancellationRatePercent?: number;
     averageTicketPrice?: number;
+    totalRevenueFromTickets?: number;
 };
 
 export type AdminDashboardStatusStatDto = {
