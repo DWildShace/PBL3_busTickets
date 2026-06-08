@@ -57,7 +57,12 @@ namespace Pbl3.Services.BusAdmin
             };
         }
 
-        public async Task<object> GetBookedTicketsAsync(Guid companyId, TicketStatus? status, int page, int pageSize)
+        public async Task<object> GetBookedTicketsAsync(
+            Guid companyId,
+            TicketStatus? status,
+            int page,
+            int pageSize
+        )
         {
             if (page < 1)
                 throw new ArgumentException("page phải lớn hơn hoặc bằng 1.");
@@ -70,9 +75,7 @@ namespace Pbl3.Services.BusAdmin
             var query = _context
                 .Tickets.AsNoTracking()
                 .Where(t =>
-                    t.Trip != null
-                    && t.Trip.Route != null
-                    && t.Trip.Route.CompanyID == companyId
+                    t.Trip != null && t.Trip.Route != null && t.Trip.Route.CompanyID == companyId
                 );
 
             if (status.HasValue)
@@ -129,7 +132,13 @@ namespace Pbl3.Services.BusAdmin
             };
         }
 
-        public async Task<object> GetTripsAsync(Guid companyId, int? year, int? month, int page, int pageSize)
+        public async Task<object> GetTripsAsync(
+            Guid companyId,
+            int? year,
+            int? month,
+            int page,
+            int pageSize
+        )
         {
             if (page < 1)
                 throw new ArgumentException("page phải lớn hơn hoặc bằng 1.");
@@ -172,6 +181,7 @@ namespace Pbl3.Services.BusAdmin
                     BusPlateNumber = t.Bus != null ? t.Bus.PlateNumber : null,
                     t.BusTypeID,
                     BusTypeName = t.BusType != null ? t.BusType.Name : null,
+                    t.BasePrice,
                     TicketCount = t.Tickets.Count,
                 })
                 .ToListAsync();
@@ -186,7 +196,12 @@ namespace Pbl3.Services.BusAdmin
             };
         }
 
-        public async Task<object> GetSeatLayoutsAsync(Guid busTypeId, Guid companyId, int page, int pageSize)
+        public async Task<object> GetSeatLayoutsAsync(
+            Guid busTypeId,
+            Guid companyId,
+            int page,
+            int pageSize
+        )
         {
             if (page < 1)
                 throw new ArgumentException("page phải lớn hơn hoặc bằng 1.");

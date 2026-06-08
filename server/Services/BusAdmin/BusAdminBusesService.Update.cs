@@ -55,10 +55,13 @@ namespace Pbl3.Services.BusAdmin
             if (dto.DepartureDate < DateOnly.FromDateTime(DateTime.Today))
                 throw new ArgumentException("Ngày khởi hành phải từ hôm nay trở đi.");
 
+            if (dto.BasePrice <= 0)
+                throw new ArgumentException("Giá vé phải lớn hơn 0.");
+
             var parsedDepTime = TimeOnly.Parse(dto.DepartureTime);
             var parsedArrTime = TimeOnly.Parse(dto.ArrivalTime);
-            var departureDateTime = dto.DepartureDate.ToDateTime(parsedDepTime);
-            var arrivalDateTime = dto.DepartureDate.ToDateTime(parsedArrTime);
+            var departureDateTime = ToUtcDateTime(dto.DepartureDate, parsedDepTime);
+            var arrivalDateTime = ToUtcDateTime(dto.DepartureDate, parsedArrTime);
             if (arrivalDateTime < departureDateTime)
             {
                 arrivalDateTime = arrivalDateTime.AddDays(1);
@@ -71,11 +74,16 @@ namespace Pbl3.Services.BusAdmin
             trip.DepartureTime = departureDateTime;
             trip.ArrivalTime = arrivalDateTime;
             trip.Status = dto.Status;
+            trip.BasePrice = dto.BasePrice;
 
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateBusTypeAmenitiesAsync(Guid busTypeId, UpdateBusTypeAmenitiesDto dto, Guid companyId)
+        public async Task UpdateBusTypeAmenitiesAsync(
+            Guid busTypeId,
+            UpdateBusTypeAmenitiesDto dto,
+            Guid companyId
+        )
         {
             await EnsureCompanyAccessAsync(companyId);
 
@@ -93,7 +101,11 @@ namespace Pbl3.Services.BusAdmin
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateSeatLayoutAsync(Guid layoutId, UpdateSeatLayoutDto dto, Guid companyId)
+        public async Task UpdateSeatLayoutAsync(
+            Guid layoutId,
+            UpdateSeatLayoutDto dto,
+            Guid companyId
+        )
         {
             await EnsureCompanyAccessAsync(companyId);
 
@@ -103,10 +115,7 @@ namespace Pbl3.Services.BusAdmin
             if (seatLayout == null)
                 throw new KeyNotFoundException("Không tìm thấy sơ đồ ghế.");
 
-            var hasOwnership = await IsBusTypeOwnedByCompanyAsync(
-                companyId,
-                seatLayout.BusTypeID
-            );
+            var hasOwnership = await IsBusTypeOwnedByCompanyAsync(companyId, seatLayout.BusTypeID);
             if (!hasOwnership)
                 throw new InvalidOperationException("Không có quyền truy cập.");
 

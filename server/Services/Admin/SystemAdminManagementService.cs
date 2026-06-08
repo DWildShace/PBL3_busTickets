@@ -31,5 +31,10 @@ namespace Pbl3.Services.Admin
         {
             return _context.BusTypes.AnyAsync(bt => bt.BusTypeID == busTypeId);
         }
+
+        private static DateTime ToUtcDateTime(DateOnly date, TimeOnly time)
+        {
+            return DateTime.SpecifyKind(date.ToDateTime(time), DateTimeKind.Utc);
+        }
     }
 }

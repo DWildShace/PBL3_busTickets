@@ -20,6 +20,7 @@ namespace Pbl3.Dtos
         public required string DepartureTime { get; set; }
         public required string ArrivalTime { get; set; }
         public TripStatus Status { get; set; } = TripStatus.Scheduled;
+        public decimal BasePrice { get; set; }
     }
 
     public class UpdateTripDto
@@ -31,6 +32,7 @@ namespace Pbl3.Dtos
         public required string DepartureTime { get; set; }
         public required string ArrivalTime { get; set; }
         public TripStatus Status { get; set; }
+        public decimal BasePrice { get; set; }
     }
 
     public class UpdateTripStatusDto

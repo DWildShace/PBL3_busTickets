@@ -67,10 +67,13 @@ namespace Pbl3.Services.Admin
             if (!busTypeExists)
                 throw new ArgumentException("Loại xe không tồn tại.");
 
+            if (dto.BasePrice <= 0)
+                throw new ArgumentException("Giá vé phải lớn hơn 0.");
+
             var parsedDepTime = TimeOnly.Parse(dto.DepartureTime);
             var parsedArrTime = TimeOnly.Parse(dto.ArrivalTime);
-            var departureDateTime = dto.DepartureDate.ToDateTime(parsedDepTime);
-            var arrivalDateTime = dto.DepartureDate.ToDateTime(parsedArrTime);
+            var departureDateTime = ToUtcDateTime(dto.DepartureDate, parsedDepTime);
+            var arrivalDateTime = ToUtcDateTime(dto.DepartureDate, parsedArrTime);
             if (arrivalDateTime < departureDateTime)
             {
                 arrivalDateTime = arrivalDateTime.AddDays(1);
@@ -83,6 +86,7 @@ namespace Pbl3.Services.Admin
             trip.DepartureTime = departureDateTime;
             trip.ArrivalTime = arrivalDateTime;
             trip.Status = dto.Status;
+            trip.BasePrice = dto.BasePrice;
 
             await _context.SaveChangesAsync();
         }

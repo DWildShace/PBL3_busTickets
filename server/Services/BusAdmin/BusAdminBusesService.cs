@@ -31,17 +31,20 @@ namespace Pbl3.Services.BusAdmin
 
             if (!company.IsApproved)
             {
-                throw new InvalidOperationException("Nhà xe đang chờ duyệt. Vui lòng đợi SysAdmin xét duyệt.");
+                throw new InvalidOperationException(
+                    "Nhà xe đang chờ duyệt. Vui lòng đợi SysAdmin xét duyệt."
+                );
             }
 
             var hasPendingUpdate = await _context.CompanyProfileUpdateRequests.AnyAsync(r =>
-                r.CompanyID == companyId
-                && r.Status == CompanyProfileUpdateRequestStatus.Pending
+                r.CompanyID == companyId && r.Status == CompanyProfileUpdateRequestStatus.Pending
             );
 
             if (hasPendingUpdate)
             {
-                throw new InvalidOperationException("Hồ sơ nhà xe đang chờ duyệt. Vui lòng đợi SysAdmin xét duyệt.");
+                throw new InvalidOperationException(
+                    "Hồ sơ nhà xe đang chờ duyệt. Vui lòng đợi SysAdmin xét duyệt."
+                );
             }
         }
 
@@ -68,6 +71,11 @@ namespace Pbl3.Services.BusAdmin
         private Task<bool> IsBusTypeExistsAsync(Guid busTypeId)
         {
             return _ownershipService.IsBusTypeExistsAsync(busTypeId);
+        }
+
+        private static DateTime ToUtcDateTime(DateOnly date, TimeOnly time)
+        {
+            return DateTime.SpecifyKind(date.ToDateTime(time), DateTimeKind.Utc);
         }
     }
 }

@@ -46,6 +46,7 @@ export type BusAdminTripListItem = {
     busPlateNumber?: string | null;
     busTypeID: string;
     busTypeName?: string | null;
+    basePrice: number;
     ticketCount: number;
 };
 
@@ -72,6 +73,7 @@ const createInitialForm = (trip: BusAdminTripListItem | null) => {
             departureTime: new Date(trip.departureTime).toISOString().substring(11, 16),
             arrivalTime: new Date(trip.arrivalTime).toISOString().substring(11, 16),
             status: trip.status,
+            basePrice: String(trip.basePrice ?? ""),
         };
     }
 
@@ -84,6 +86,7 @@ const createInitialForm = (trip: BusAdminTripListItem | null) => {
         departureTime: "08:00",
         arrivalTime: "10:00",
         status: 0,
+        basePrice: "250000",
     };
 };
 
@@ -136,6 +139,11 @@ export function TripDialog({
             toast.error("Ngày khởi hành phải từ hôm nay trở đi");
             return;
         }
+        const basePrice = Number(form.basePrice);
+        if (!Number.isFinite(basePrice) || basePrice <= 0) {
+            toast.error("Giá vé phải lớn hơn 0");
+            return;
+        }
 
         setSaving(true);
         try {
@@ -150,6 +158,7 @@ export function TripDialog({
                 departureTime: form.departureTime + ":00", // ensure TimeSpan format HH:mm:ss
                 arrivalTime: form.arrivalTime + ":00",
                 status: form.status as 0 | 1 | 2 | 3,
+                basePrice,
             };
 
             if (trip) {
@@ -311,6 +320,19 @@ export function TripDialog({
                                 onChange={(e) => setForm({ ...form, arrivalTime: e.target.value })}
                             />
                         </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="basePrice">Giá vé *</Label>
+                        <Input
+                            id="basePrice"
+                            type="number"
+                            min="1"
+                            step="1000"
+                            value={form.basePrice}
+                            onChange={(e) => setForm({ ...form, basePrice: e.target.value })}
+                            placeholder="Nhập giá vé"
+                        />
                     </div>
 
                     <div className="space-y-2">

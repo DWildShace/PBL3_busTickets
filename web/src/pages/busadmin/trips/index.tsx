@@ -15,16 +15,7 @@ import {
     getFilteredRowModel,
     useReactTable,
 } from "@tanstack/react-table";
-import {
-    ChevronLeft,
-    ChevronRight,
-    ChevronsLeft,
-    ChevronsRight,
-    RefreshCw,
-    Edit,
-    Plus,
-    Trash2,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, RefreshCw, Edit, Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { TripDialog } from "./components/trip-dialog";
@@ -49,6 +40,7 @@ type BusAdminTripListItem = {
     busPlateNumber?: string | null;
     busTypeID: string;
     busTypeName?: string | null;
+    basePrice: number;
     ticketCount: number;
 };
 
@@ -60,7 +52,9 @@ type BusAdminTripsResponse = {
     records: BusAdminTripListItem[];
 };
 
-const formatTripStatus = (status: number): { label: string; variant: "default" | "secondary" | "destructive" | "outline" } => {
+const formatTripStatus = (
+    status: number,
+): { label: string; variant: "default" | "secondary" | "destructive" | "outline" } => {
     switch (status) {
         case 0:
             return { label: "Đã lên lịch", variant: "secondary" };
@@ -112,7 +106,7 @@ export function PageBusAdminTrips() {
 
         try {
             const response = await deleteApiBusadminBusesTripsByTripId({
-                path: { tripId: trip.tripID }
+                path: { tripId: trip.tripID },
             });
             if (response.error) {
                 throw new Error("Không thể xóa chuyến xe");
@@ -304,7 +298,7 @@ export function PageBusAdminTrips() {
 
     const suggestedRoutes = useMemo(() => {
         const map = new Map<string, string>(); // map label -> id
-        trips.forEach(t => {
+        trips.forEach((t) => {
             if (t.routeID && t.routeName && !map.has(t.routeName)) {
                 map.set(t.routeName, t.routeID);
             }
@@ -314,7 +308,7 @@ export function PageBusAdminTrips() {
 
     const suggestedBusTypes = useMemo(() => {
         const map = new Map<string, string>(); // map label -> id
-        trips.forEach(t => {
+        trips.forEach((t) => {
             if (t.busTypeID && t.busTypeName && !map.has(t.busTypeName)) {
                 map.set(t.busTypeName, t.busTypeID);
             }
@@ -324,7 +318,7 @@ export function PageBusAdminTrips() {
 
     const suggestedBuses = useMemo(() => {
         const map = new Map<string, string>(); // map label -> id
-        trips.forEach(t => {
+        trips.forEach((t) => {
             if (t.busID && t.busPlateNumber && !map.has(t.busPlateNumber)) {
                 map.set(t.busPlateNumber, t.busID);
             }
@@ -400,9 +394,7 @@ export function PageBusAdminTrips() {
                             ))}
                         </div>
                     ) : error ? (
-                        <div className="rounded-md border border-dashed p-6 text-sm text-muted-foreground">
-                            {error}
-                        </div>
+                        <div className="rounded-md border border-dashed p-6 text-sm text-muted-foreground">{error}</div>
                     ) : (
                         <>
                             <div className="overflow-hidden rounded-md border">
