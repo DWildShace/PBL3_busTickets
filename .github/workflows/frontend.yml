@@ -36,7 +36,6 @@ jobs:
         run: |
           echo "/* /index.html 200" > ./web/dist/_headers
           cp ./web/dist/index.html ./web/dist/404.html
-          echo "pbl3-prod.michioxd.ch" > ./web/dist/CNAME
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4
