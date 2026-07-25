@@ -1,4 +1,4 @@
-import { postApiPaymentsMomoReturnVerify } from "@/api";
+import { postApiPaymentsMomoReturnVerify, postApiPaymentsVnpayReturnVerify } from "@/api";
 import LoginDialog from "@/dialogs/Login";
 import { useStore } from "@/stores";
 import { Badge, Box, Button, Card, Container, Flex, Heading, Spinner, Text } from "@radix-ui/themes";
@@ -109,6 +109,23 @@ function buildMomoReturnVerifyPayload(searchParams: URLSearchParams): MomoReturn
     };
 }
 
+function buildVnpayReturnVerifyPayload(searchParams: URLSearchParams) {
+    return {
+        vnp_Amount: readRequiredNumberParam(searchParams, "vnp_Amount"),
+        vnp_BankCode: searchParams.get("vnp_BankCode") || "",
+        vnp_BankTranNo: searchParams.get("vnp_BankTranNo") || "",
+        vnp_CardType: searchParams.get("vnp_CardType") || "",
+        vnp_OrderInfo: searchParams.get("vnp_OrderInfo") || "",
+        vnp_PayDate: searchParams.get("vnp_PayDate") || "",
+        vnp_ResponseCode: searchParams.get("vnp_ResponseCode") || "",
+        vnp_TmnCode: searchParams.get("vnp_TmnCode") || "",
+        vnp_TransactionNo: searchParams.get("vnp_TransactionNo") || "",
+        vnp_TransactionStatus: searchParams.get("vnp_TransactionStatus") || "",
+        vnp_TxnRef: searchParams.get("vnp_TxnRef") || "",
+        vnp_SecureHash: searchParams.get("vnp_SecureHash") || "",
+    };
+}
+
 const PageBookingPaymentResult = observer(() => {
     const store = useStore();
     const navigate = useNavigate();
@@ -121,9 +138,14 @@ const PageBookingPaymentResult = observer(() => {
     const [reloadKey, setReloadKey] = useState(0);
 
     const pendingPayment = useMemo(() => getPendingMomoPayment(), []);
+    const isVnpay = useMemo(() => searchParams.has("vnp_SecureHash"), [searchParams]);
+    const vnpayResponseCode = useMemo(() => searchParams.get("vnp_ResponseCode"), [searchParams]);
     const queryIntentId = useMemo(() => searchParams.get("intentId"), [searchParams]);
     const queryBookingId = useMemo(() => searchParams.get("bookingId"), [searchParams]);
     const resultCode = useMemo(() => {
+        if (isVnpay) {
+            return vnpayResponseCode === "00" ? 0 : 1;
+        }
         const value = searchParams.get("resultCode");
         if (!value) {
             return null;
@@ -131,9 +153,14 @@ const PageBookingPaymentResult = observer(() => {
 
         const parsedValue = Number(value);
         return Number.isFinite(parsedValue) ? parsedValue : null;
-    }, [searchParams]);
-    const queryMessage = useMemo(() => searchParams.get("message"), [searchParams]);
-    const queryOrderId = useMemo(() => searchParams.get("orderId"), [searchParams]);
+    }, [searchParams, isVnpay, vnpayResponseCode]);
+    const queryMessage = useMemo(() => {
+        if (isVnpay) {
+            return vnpayResponseCode === "00" ? "Giao dịch thành công" : "Giao dịch không thành công";
+        }
+        return searchParams.get("message");
+    }, [searchParams, isVnpay, vnpayResponseCode]);
+    const queryOrderId = useMemo(() => searchParams.get(isVnpay ? "vnp_TxnRef" : "orderId"), [searchParams, isVnpay]);
     const resolvedIntentId = queryIntentId || pendingPayment?.intentId || null;
     const resolvedBookingId = queryBookingId || pendingPayment?.bookingId || null;
 
@@ -148,13 +175,13 @@ const PageBookingPaymentResult = observer(() => {
             return;
         }
 
-        if (!resolvedIntentId) {
+        if (!resolvedIntentId && !isVnpay) {
             setMessage(resultCode !== null && resultCode !== 0 ? queryMessage : null);
             setViewState(resultCode !== null && resultCode !== 0 ? "failed" : "missing");
             return;
         }
 
-        if (queryOrderId && pendingPayment?.orderId && queryOrderId !== pendingPayment.orderId) {
+        if (!isVnpay && queryOrderId && pendingPayment?.orderId && queryOrderId !== pendingPayment.orderId) {
             clearPendingMomoPayment();
             setMessage(t("payment_result_missing_desc"));
             setViewState("missing");
@@ -167,9 +194,16 @@ const PageBookingPaymentResult = observer(() => {
             setViewState("loading");
 
             try {
-                const response = await postApiPaymentsMomoReturnVerify({
-                    body: buildMomoReturnVerifyPayload(searchParams),
-                });
+                let response;
+                if (isVnpay) {
+                    response = await postApiPaymentsVnpayReturnVerify({
+                        body: buildVnpayReturnVerifyPayload(searchParams),
+                    });
+                } else {
+                    response = await postApiPaymentsMomoReturnVerify({
+                        body: buildMomoReturnVerifyPayload(searchParams),
+                    });
+                }
 
                 if (!active) {
                     return;
@@ -182,6 +216,14 @@ const PageBookingPaymentResult = observer(() => {
                 const paymentStatus = parsePaymentStatusPayload(response.data);
                 if (!paymentStatus) {
                     throw new Error(t("payment_result_missing_desc"));
+                }
+
+                if (isVnpay) {
+                    const vnpResponse = response.data as Record<string, unknown>;
+                    paymentStatus.message = vnpResponse.message as string;
+                    paymentStatus.status = vnpResponse.responseCode === "00" ? PAYMENT_STATUS_SUCCEEDED : PAYMENT_STATUS_FAILED;
+                    paymentStatus.amount = readRequiredNumberParam(searchParams, "vnp_Amount") / 100;
+                    paymentStatus.currency = "VND";
                 }
 
                 setPayment(paymentStatus);
@@ -233,6 +275,7 @@ const PageBookingPaymentResult = observer(() => {
         store.user.isAuthenticated,
         store.user.isLoading,
         t,
+        isVnpay,
     ]);
 
     const paidAtLabel = useMemo(() => {
@@ -249,57 +292,60 @@ const PageBookingPaymentResult = observer(() => {
     }, [i18n.language, payment?.paidAt]);
 
     const stateContent = useMemo(() => {
+        const providerName = isVnpay ? "VNPAY" : "MoMo";
+        const replaceProvider = (text: string) => text.replaceAll("MoMo", providerName);
+
         switch (viewState) {
             case "success":
                 return {
                     badgeColor: "green" as const,
-                    badgeLabel: t("payment_result_success_badge"),
+                    badgeLabel: replaceProvider(t("payment_result_success_badge")),
                     cardClassName: "border border-(--green-a6) bg-(--green-2)",
-                    title: t("payment_result_success_title"),
-                    description: t("payment_result_success_desc"),
+                    title: replaceProvider(t("payment_result_success_title")),
+                    description: replaceProvider(t("payment_result_success_desc")),
                 };
             case "pending":
                 return {
                     badgeColor: "amber" as const,
-                    badgeLabel: t("payment_result_pending_badge"),
+                    badgeLabel: replaceProvider(t("payment_result_pending_badge")),
                     cardClassName: "border border-(--amber-a6) bg-(--amber-2)",
-                    title: t("payment_result_pending_title"),
-                    description: t("payment_result_pending_desc"),
+                    title: replaceProvider(t("payment_result_pending_title")),
+                    description: replaceProvider(t("payment_result_pending_desc")),
                 };
             case "failed":
                 return {
                     badgeColor: "red" as const,
-                    badgeLabel: t("payment_result_failed_badge"),
+                    badgeLabel: replaceProvider(t("payment_result_failed_badge")),
                     cardClassName: "border border-(--red-a6) bg-(--red-2)",
-                    title: t("payment_result_failed_title"),
-                    description: t("payment_result_failed_desc"),
+                    title: replaceProvider(t("payment_result_failed_title")),
+                    description: replaceProvider(t("payment_result_failed_desc")),
                 };
             case "missing":
                 return {
                     badgeColor: "gray" as const,
                     badgeLabel: null,
                     cardClassName: "border border-(--gray-a4)",
-                    title: t("payment_result_missing_title"),
-                    description: t("payment_result_missing_desc"),
+                    title: replaceProvider(t("payment_result_missing_title")),
+                    description: replaceProvider(t("payment_result_missing_desc")),
                 };
             case "login":
                 return {
                     badgeColor: "gray" as const,
                     badgeLabel: null,
                     cardClassName: "border border-(--gray-a4)",
-                    title: t("payment_result_login_title"),
-                    description: t("payment_result_login_desc"),
+                    title: replaceProvider(t("payment_result_login_title")),
+                    description: replaceProvider(t("payment_result_login_desc")),
                 };
             default:
                 return {
                     badgeColor: "gray" as const,
                     badgeLabel: null,
                     cardClassName: "border border-(--gray-a4)",
-                    title: t("payment_result_loading_title"),
-                    description: t("payment_result_loading_desc"),
+                    title: replaceProvider(t("payment_result_loading_title")),
+                    description: replaceProvider(t("payment_result_loading_desc")),
                 };
         }
-    }, [t, viewState]);
+    }, [t, viewState, isVnpay]);
 
     const handleRetry = () => {
         if (pendingPayment?.tripId) {
@@ -314,7 +360,7 @@ const PageBookingPaymentResult = observer(() => {
         <Box className="bg-(--gray-2)" style={{ minHeight: "100%" }}>
             <Container size="2" px="4" py="8">
                 <Flex direction="column" gap="4">
-                    <Heading size="7">{t("payment_result_page_title")}</Heading>
+                    <Heading size="7">{isVnpay ? "Kết quả thanh toán VNPAY" : t("payment_result_page_title")}</Heading>
 
                     <Card size="4" className={stateContent.cardClassName}>
                         <Flex direction="column" gap="4">

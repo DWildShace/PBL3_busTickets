@@ -92,6 +92,7 @@ namespace Pbl3.Enums
         Momo,
         Stripe,
         Cash,
+        Vnpay,
     }
 
     public enum PaymentIntentStatus

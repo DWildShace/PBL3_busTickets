@@ -82,6 +82,7 @@ export default {
     payment_done_badge: "Hoàn tất",
     payment_done_desc: "Kiểm tra đơn vé của bạn trong mục quản lý đơn hàng nếu cần theo dõi trạng thái thanh toán.",
     payment_redirecting_momo: "Đang chuyển sang MoMo để bạn hoàn tất thanh toán.",
+    payment_redirecting_vnpay: "Đang chuyển sang VNPAY để bạn hoàn tất thanh toán.",
     payment_cash_success: "Đặt vé thành công. Vui lòng thanh toán tại quầy theo thời gian giữ chỗ.",
     payment_created_check_orders: "Đơn vé đã được tạo. Vui lòng kiểm tra trong mục đơn hàng để tiếp tục thanh toán.",
     payment_submit_error: "Không thể tạo đơn vé. Vui lòng thử lại.",

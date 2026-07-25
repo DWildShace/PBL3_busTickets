@@ -24,10 +24,17 @@ namespace Pbl3.Data
 
         public async Task SeedAsync()
         {
-            await ImportAdministrativeLocationDataAsync();
-
-            // Đảm bảo roles luôn tồn tại, ngay cả khi DB bị reset một phần
+            // Đảm bảo roles luôn tồn tại FIRST, ngay cả khi DB bị reset một phần
             await EnsureRolesExistAsync();
+
+            try
+            {
+                await ImportAdministrativeLocationDataAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Import location failed, but continuing with seed...");
+            }
 
             if (await _context.Users.AnyAsync())
             {
@@ -1264,7 +1271,7 @@ namespace Pbl3.Data
                 bt.Name == "Ghế ngồi 45 chỗ"
             );
 
-            var today = DateTime.UtcNow;
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
             var trips = new List<Trip>
             {
                 // HCM - Da Lat trips
@@ -1274,9 +1281,9 @@ namespace Pbl3.Data
                     RouteID = routeHCMDaLat.RouteID,
                     BusID = bus1.BusID,
                     BusTypeID = busType29Seat.BusTypeID,
-                    DepartureDate = DateOnly.FromDateTime(today.AddDays(1)),
-                    DepartureTime = today.AddDays(1).Date.AddHours(7),
-                    ArrivalTime = today.AddDays(1).Date.AddHours(15),
+                    DepartureDate = today.AddDays(1),
+                    DepartureTime = ToUtcDateTime(today.AddDays(1), 7),
+                    ArrivalTime = ToUtcDateTime(today.AddDays(1), 15),
                     Status = TripStatus.Scheduled,
                     BasePrice = 250000,
                 },
@@ -1286,9 +1293,9 @@ namespace Pbl3.Data
                     RouteID = routeHCMDaLat.RouteID,
                     BusID = bus2.BusID,
                     BusTypeID = busType29Seat.BusTypeID,
-                    DepartureDate = DateOnly.FromDateTime(today.AddDays(1)),
-                    DepartureTime = today.AddDays(1).Date.AddHours(22),
-                    ArrivalTime = today.AddDays(2).Date.AddHours(6),
+                    DepartureDate = today.AddDays(1),
+                    DepartureTime = ToUtcDateTime(today.AddDays(1), 22),
+                    ArrivalTime = ToUtcDateTime(today.AddDays(2), 6),
                     Status = TripStatus.Scheduled,
                     BasePrice = 250000,
                 },
@@ -1298,9 +1305,9 @@ namespace Pbl3.Data
                     RouteID = routeHCMDaLat.RouteID,
                     BusID = bus1.BusID,
                     BusTypeID = busType29Seat.BusTypeID,
-                    DepartureDate = DateOnly.FromDateTime(today.AddDays(2)),
-                    DepartureTime = today.AddDays(2).Date.AddHours(7),
-                    ArrivalTime = today.AddDays(2).Date.AddHours(15),
+                    DepartureDate = today.AddDays(2),
+                    DepartureTime = ToUtcDateTime(today.AddDays(2), 7),
+                    ArrivalTime = ToUtcDateTime(today.AddDays(2), 15),
                     Status = TripStatus.Scheduled,
                     BasePrice = 250000,
                 },
@@ -1311,9 +1318,9 @@ namespace Pbl3.Data
                     RouteID = routeHCMVungTau.RouteID,
                     BusID = bus2.BusID,
                     BusTypeID = busType29Seat.BusTypeID,
-                    DepartureDate = DateOnly.FromDateTime(today.AddDays(1)),
-                    DepartureTime = today.AddDays(1).Date.AddHours(8),
-                    ArrivalTime = today.AddDays(1).Date.AddHours(10).AddMinutes(30),
+                    DepartureDate = today.AddDays(1),
+                    DepartureTime = ToUtcDateTime(today.AddDays(1), 8),
+                    ArrivalTime = ToUtcDateTime(today.AddDays(1), 10, 30),
                     Status = TripStatus.Scheduled,
                     BasePrice = 250000,
                 },
@@ -1323,9 +1330,9 @@ namespace Pbl3.Data
                     RouteID = routeHCMVungTau.RouteID,
                     BusID = bus1.BusID,
                     BusTypeID = busType29Seat.BusTypeID,
-                    DepartureDate = DateOnly.FromDateTime(today.AddDays(1)),
-                    DepartureTime = today.AddDays(1).Date.AddHours(14),
-                    ArrivalTime = today.AddDays(1).Date.AddHours(16).AddMinutes(30),
+                    DepartureDate = today.AddDays(1),
+                    DepartureTime = ToUtcDateTime(today.AddDays(1), 14),
+                    ArrivalTime = ToUtcDateTime(today.AddDays(1), 16, 30),
                     Status = TripStatus.Scheduled,
                     BasePrice = 250000,
                 },
@@ -1336,9 +1343,9 @@ namespace Pbl3.Data
                     RouteID = routeHCMCanTho.RouteID,
                     BusID = bus3.BusID,
                     BusTypeID = busType40Seat.BusTypeID,
-                    DepartureDate = DateOnly.FromDateTime(today.AddDays(1)),
-                    DepartureTime = today.AddDays(1).Date.AddHours(6),
-                    ArrivalTime = today.AddDays(1).Date.AddHours(10),
+                    DepartureDate = today.AddDays(1),
+                    DepartureTime = ToUtcDateTime(today.AddDays(1), 6),
+                    ArrivalTime = ToUtcDateTime(today.AddDays(1), 10),
                     Status = TripStatus.Scheduled,
                     BasePrice = 250000,
                 },
@@ -1348,9 +1355,9 @@ namespace Pbl3.Data
                     RouteID = routeHCMCanTho.RouteID,
                     BusID = bus4.BusID,
                     BusTypeID = busType45Seat.BusTypeID,
-                    DepartureDate = DateOnly.FromDateTime(today.AddDays(2)),
-                    DepartureTime = today.AddDays(2).Date.AddHours(12),
-                    ArrivalTime = today.AddDays(2).Date.AddHours(16),
+                    DepartureDate = today.AddDays(2),
+                    DepartureTime = ToUtcDateTime(today.AddDays(2), 12),
+                    ArrivalTime = ToUtcDateTime(today.AddDays(2), 16),
                     Status = TripStatus.Scheduled,
                     BasePrice = 250000,
                 },
@@ -1361,9 +1368,9 @@ namespace Pbl3.Data
                     RouteID = routeHCMNhaTrang.RouteID,
                     BusID = bus5.BusID,
                     BusTypeID = busType29Seat.BusTypeID,
-                    DepartureDate = DateOnly.FromDateTime(today.AddDays(1)),
-                    DepartureTime = today.AddDays(1).Date.AddHours(20),
-                    ArrivalTime = today.AddDays(2).Date.AddHours(6),
+                    DepartureDate = today.AddDays(1),
+                    DepartureTime = ToUtcDateTime(today.AddDays(1), 20),
+                    ArrivalTime = ToUtcDateTime(today.AddDays(2), 6),
                     Status = TripStatus.Scheduled,
                     BasePrice = 250000,
                 },
@@ -1374,9 +1381,9 @@ namespace Pbl3.Data
                     RouteID = routeHCMDaNang.RouteID,
                     BusID = bus1.BusID,
                     BusTypeID = busType29Seat.BusTypeID,
-                    DepartureDate = DateOnly.FromDateTime(today.AddDays(3)),
-                    DepartureTime = today.AddDays(3).Date.AddHours(18),
-                    ArrivalTime = today.AddDays(4).Date.AddHours(12),
+                    DepartureDate = today.AddDays(3),
+                    DepartureTime = ToUtcDateTime(today.AddDays(3), 18),
+                    ArrivalTime = ToUtcDateTime(today.AddDays(4), 12),
                     Status = TripStatus.Scheduled,
                     BasePrice = 250000,
                 },
@@ -1792,6 +1799,11 @@ namespace Pbl3.Data
             }
 
             return SeatType.Aisle;
+        }
+
+        private static DateTime ToUtcDateTime(DateOnly date, int hour, int minute = 0)
+        {
+            return DateTime.SpecifyKind(date.ToDateTime(new TimeOnly(hour, minute)), DateTimeKind.Utc);
         }
     }
 }

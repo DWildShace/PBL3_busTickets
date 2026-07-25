@@ -82,6 +82,7 @@ export default {
     payment_done_badge: "Completed",
     payment_done_desc: "Check your orders page anytime if you need to review the payment status.",
     payment_redirecting_momo: "Redirecting you to MoMo to complete the payment.",
+    payment_redirecting_vnpay: "Redirecting you to VNPAY to complete the payment.",
     payment_cash_success: "Booking created successfully. Please pay at the counter before the hold expires.",
     payment_created_check_orders: "Your booking was created. Please check your orders page to continue payment.",
     payment_submit_error: "Unable to create the booking. Please try again.",

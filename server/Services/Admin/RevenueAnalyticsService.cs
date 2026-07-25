@@ -25,58 +25,78 @@ namespace Pbl3.Services.Admin
             var end = endDate?.Date ?? DateTime.UtcNow.Date;
             var start = startDate?.Date ?? end.AddDays(-30);
 
-            // Get all succeeded payment intents in date range
-            var payments = await _context
-                .PaymentIntents.AsNoTracking()
-                .Include(p => p.Booking)
-                    .ThenInclude(b => b!.Tickets)
-                        .ThenInclude(t => t.Trip)
-                            .ThenInclude(tr => tr!.Route)
-                                .ThenInclude(r => r!.BusCompany)
-                .Include(p => p.Refunds)
-                .Where(p =>
-                    p.Status == PaymentIntentStatus.Succeeded
-                    && p.CreatedAt >= start
-                    && p.CreatedAt < end.AddDays(1)
+            // === TICKET-CENTRIC APPROACH ===
+            // Load all Issued/CheckedIn tickets in the date range directly.
+            // Revenue is computed from Ticket.FinalPrice — no dependency on PaymentIntent.Status.
+            var tickets = await _context.Tickets
+                .AsNoTracking()
+                .Include(t => t.Booking)
+                    .ThenInclude(b => b!.PaymentIntents)
+                        .ThenInclude(pi => pi.Refunds)
+                .Include(t => t.Trip)
+                    .ThenInclude(tr => tr!.Route)
+                        .ThenInclude(r => r!.BusCompany)
+                .Where(t =>
+                    (t.Status == TicketStatus.Issued || t.Status == TicketStatus.CheckedIn)
+                    && t.Booking != null
+                    && t.Booking.CreatedAt >= start
+                    && t.Booking.CreatedAt < end.AddDays(1)
                 )
                 .ToListAsync();
 
-            // Calculate summary
-            var totalRevenue = payments.Sum(p => p.Amount);
-            var totalRefunded = payments.SelectMany(p => p.Refunds).Sum(r => r.Amount);
-            var netRevenue = totalRevenue - totalRefunded;
-            var totalTransactions = payments.Count;
-            var ticketsSold = payments
-                .SelectMany(p => p.Booking?.Tickets ?? new List<Ticket>())
-                .Count();
-            var avgTransactionValue = totalTransactions > 0 ? totalRevenue / totalTransactions : 0;
+            // ─── Summary ─────────────────────────────────────────────────────────
+            var totalRevenue = tickets.Sum(t => t.FinalPrice);
+            var ticketsSold = tickets.Count;
 
-            // Calculate growth (compare with previous period)
+            // Collect unique bookings to avoid double-counting refunds
+            var bookingMap = tickets
+                .Where(t => t.Booking != null)
+                .GroupBy(t => t.BookingID)
+                .ToDictionary(g => g.Key, g => g.First().Booking!);
+
+            var totalRefunded = bookingMap.Values
+                .SelectMany(b => b.PaymentIntents)
+                .SelectMany(pi => pi.Refunds)
+                .Where(r => r.Status == RefundStatus.Completed)
+                .Sum(r => r.Amount);
+
+            var netRevenue = totalRevenue - totalRefunded;
+            var totalTransactions = bookingMap.Count; // unique bookings = transactions
+            var avgTransactionValue = totalTransactions > 0
+                ? totalRevenue / totalTransactions
+                : 0;
+
+            // ─── Growth (previous period) ─────────────────────────────────────────
             var periodDays = (end - start).Days + 1;
             var previousStart = start.AddDays(-periodDays);
             var previousEnd = start.AddDays(-1);
 
-            var previousPayments = await _context
-                .PaymentIntents.AsNoTracking()
-                .Where(p =>
-                    p.Status == PaymentIntentStatus.Succeeded
-                    && p.CreatedAt >= previousStart
-                    && p.CreatedAt < previousEnd.AddDays(1)
+            var previousRevenue = await _context.Tickets
+                .AsNoTracking()
+                .Where(t =>
+                    (t.Status == TicketStatus.Issued || t.Status == TicketStatus.CheckedIn)
+                    && t.Booking != null
+                    && t.Booking.CreatedAt >= previousStart
+                    && t.Booking.CreatedAt < previousEnd.AddDays(1)
                 )
-                .ToListAsync();
+                .SumAsync(t => (decimal?)t.FinalPrice) ?? 0m;
 
-            var previousRevenue = previousPayments.Sum(p => p.Amount);
-            var previousTransactions = previousPayments.Count;
+            var previousTransactions = await _context.Bookings
+                .AsNoTracking()
+                .CountAsync(b =>
+                    b.CreatedAt >= previousStart
+                    && b.CreatedAt < previousEnd.AddDays(1)
+                    && b.Tickets.Any(t =>
+                        t.Status == TicketStatus.Issued || t.Status == TicketStatus.CheckedIn
+                    )
+                );
 
-            var revenueGrowth =
-                previousRevenue > 0
-                    ? ((totalRevenue - previousRevenue) / previousRevenue) * 100
-                    : 0;
-            var transactionGrowth =
-                previousTransactions > 0
-                    ? ((totalTransactions - previousTransactions) / (decimal)previousTransactions)
-                        * 100
-                    : 0;
+            var revenueGrowth = previousRevenue > 0
+                ? ((totalRevenue - previousRevenue) / previousRevenue) * 100
+                : 0;
+            var transactionGrowth = previousTransactions > 0
+                ? ((totalTransactions - previousTransactions) / (decimal)previousTransactions) * 100
+                : 0;
 
             var summary = new RevenueSummaryDto
             {
@@ -90,46 +110,106 @@ namespace Pbl3.Services.Admin
                 TransactionGrowthPercent = transactionGrowth,
             };
 
-            // Daily trends
-            var dailyTrends = payments
-                .GroupBy(p => p.CreatedAt.Date)
-                .Select(g => new RevenueTrendDto
+            // ─── Pre-compute refund per booking for daily trends ──────────────────
+            var refundByBooking = bookingMap.ToDictionary(
+                kv => kv.Key,
+                kv => kv.Value.PaymentIntents
+                    .SelectMany(pi => pi.Refunds)
+                    .Where(r => r.Status == RefundStatus.Completed)
+                    .Sum(r => r.Amount)
+            );
+
+            // ─── Daily Trends (grouped by Booking.CreatedAt date) ────────────────
+            var dailyTrends = tickets
+                .GroupBy(t => t.Booking!.CreatedAt.Date)
+                .Select(g =>
                 {
-                    Date = g.Key,
-                    Revenue = g.Sum(p => p.Amount),
-                    TransactionCount = g.Count(),
-                    TicketCount = g.SelectMany(p => p.Booking?.Tickets ?? new List<Ticket>())
-                        .Count(),
-                    RefundAmount = g.SelectMany(p => p.Refunds).Sum(r => r.Amount),
+                    var distinctBookingIds = g.Select(t => t.BookingID).Distinct().ToList();
+                    var dayRefund = distinctBookingIds.Sum(bid =>
+                        refundByBooking.TryGetValue(bid, out var amt) ? amt : 0
+                    );
+                    return new RevenueTrendDto
+                    {
+                        Date = g.Key,
+                        Revenue = g.Sum(t => t.FinalPrice),
+                        TransactionCount = distinctBookingIds.Count,
+                        TicketCount = g.Count(),
+                        RefundAmount = dayRefund,
+                    };
                 })
                 .OrderBy(t => t.Date)
                 .ToList();
 
-            // Revenue by provider
-            var byProvider = payments
-                .GroupBy(p => p.Provider)
-                .Select(g => new RevenueByProviderDto
+            // ─── Revenue by Payment Provider ──────────────────────────────────────
+            // Pull from Succeeded PaymentIntents linked to these bookings.
+            // "Không xác định": tickets that have no Succeeded PaymentIntent (test/manual data).
+            var succeededIntents = bookingMap.Values
+                .SelectMany(b => b.PaymentIntents)
+                .Where(pi => pi.Status == PaymentIntentStatus.Succeeded)
+                .ToList();
+
+            // Map provider enum to Vietnamese display name
+            static string ProviderDisplayName(PaymentProvider p) => p switch
+            {
+                PaymentProvider.Momo  => "Momo",
+                PaymentProvider.Cash  => "Thanh toán trực tiếp",
+                _                     => "Không xác định",
+            };
+
+            List<RevenueByProviderDto> byProvider;
+            if (succeededIntents.Any())
+            {
+                byProvider = succeededIntents
+                    .GroupBy(pi => pi.Provider)
+                    .Select(g => new RevenueByProviderDto
+                    {
+                        Provider    = g.Key,
+                        ProviderName = ProviderDisplayName(g.Key),
+                        Revenue      = g.Sum(pi => pi.Amount),
+                        TransactionCount = g.Count(),
+                        Percentage   = totalRevenue > 0
+                            ? (g.Sum(pi => pi.Amount) / totalRevenue) * 100
+                            : 0,
+                    })
+                    .OrderByDescending(p => p.Revenue)
+                    .ToList();
+
+                // If some tickets have no Succeeded PaymentIntent, show the unattributed gap
+                var knownRevenue   = byProvider.Sum(p => p.Revenue);
+                var unknownRevenue = totalRevenue - knownRevenue;
+                if (unknownRevenue > 0)
                 {
-                    Provider = g.Key,
-                    ProviderName = g.Key.ToString(),
-                    Revenue = g.Sum(p => p.Amount),
-                    TransactionCount = g.Count(),
-                    Percentage = totalRevenue > 0 ? (g.Sum(p => p.Amount) / totalRevenue) * 100 : 0,
-                })
-                .OrderByDescending(p => p.Revenue)
-                .ToList();
+                    byProvider.Add(new RevenueByProviderDto
+                    {
+                        Provider         = (PaymentProvider)(-1), // sentinel: not a real provider
+                        ProviderName     = "Không xác định",
+                        Revenue          = unknownRevenue,
+                        TransactionCount = 0,
+                        Percentage       = totalRevenue > 0 ? (unknownRevenue / totalRevenue) * 100 : 0,
+                    });
+                }
+            }
+            else
+            {
+                // No PaymentIntent data at all — all revenue is unattributed
+                byProvider =
+                [
+                    new RevenueByProviderDto
+                    {
+                        Provider         = (PaymentProvider)(-1),
+                        ProviderName     = "Không xác định",
+                        Revenue          = totalRevenue,
+                        TransactionCount = totalTransactions,
+                        Percentage       = 100,
+                    },
+                ];
+            }
 
-            // Top routes by revenue
-            var ticketsWithRoutes = payments
-                .SelectMany(p =>
-                    (p.Booking?.Tickets ?? new List<Ticket>()).Where(t =>
-                        (t.Status == TicketStatus.Issued || t.Status == TicketStatus.CheckedIn)
-                        && t.Trip?.Route != null
-                    )
-                )
-                .ToList();
 
-            var topRoutes = ticketsWithRoutes
+
+            // ─── Top Routes ───────────────────────────────────────────────────────
+            var topRoutes = tickets
+                .Where(t => t.Trip?.Route != null)
                 .GroupBy(t => new
                 {
                     RouteID = t.Trip!.Route!.RouteID,
@@ -151,9 +231,11 @@ namespace Pbl3.Services.Admin
                 .Take(topRoutesLimit)
                 .ToList();
 
-            // Revenue by company
-            var byCompany = ticketsWithRoutes
-                .Where(t => t.Trip?.Route?.BusCompany != null)
+            // ─── Revenue by Company ───────────────────────────────────────────────
+            var companyTickets = tickets.Where(t => t.Trip?.Route?.BusCompany != null).ToList();
+            var totalTicketRevenue = companyTickets.Sum(t => t.FinalPrice);
+
+            var byCompany = companyTickets
                 .GroupBy(t => new
                 {
                     CompanyID = t.Trip!.Route!.CompanyID,
@@ -166,8 +248,9 @@ namespace Pbl3.Services.Admin
                     Revenue = g.Sum(t => t.FinalPrice),
                     TicketsSold = g.Count(),
                     TripCount = g.Select(t => t.TripID).Distinct().Count(),
-                    Percentage =
-                        totalRevenue > 0 ? (g.Sum(t => t.FinalPrice) / totalRevenue) * 100 : 0,
+                    Percentage = totalTicketRevenue > 0
+                        ? (g.Sum(t => t.FinalPrice) / totalTicketRevenue) * 100
+                        : 0,
                 })
                 .OrderByDescending(c => c.Revenue)
                 .Take(topCompaniesLimit)
@@ -184,3 +267,4 @@ namespace Pbl3.Services.Admin
         }
     }
 }
+

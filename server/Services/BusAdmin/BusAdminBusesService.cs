@@ -36,16 +36,6 @@ namespace Pbl3.Services.BusAdmin
                 );
             }
 
-            var hasPendingUpdate = await _context.CompanyProfileUpdateRequests.AnyAsync(r =>
-                r.CompanyID == companyId && r.Status == CompanyProfileUpdateRequestStatus.Pending
-            );
-
-            if (hasPendingUpdate)
-            {
-                throw new InvalidOperationException(
-                    "Hồ sơ nhà xe đang chờ duyệt. Vui lòng đợi SysAdmin xét duyệt."
-                );
-            }
         }
 
         private Task<bool> IsRouteOwnedByCompanyAsync(Guid companyId, Guid routeId)

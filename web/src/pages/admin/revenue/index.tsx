@@ -149,9 +149,10 @@ export function PageAdminRevenue() {
     }));
 
     const providerChartData = byProvider.map((p) => ({
-        name: formatProvider(p.provider),
+        name: p.providerName,   // use server-provided name directly
         value: p.revenue,
         count: p.transactionCount,
+        percentage: p.percentage,
     }));
 
     return (
@@ -277,14 +278,19 @@ export function PageAdminRevenue() {
                                 <Tooltip
                                     content={({ active, payload }) => {
                                         if (active && payload && payload.length) {
-                                            const data = payload[0].payload;
+                                            const d = payload[0].payload;
                                             return (
                                                 <div className="rounded-lg border bg-background p-2 shadow-sm">
-                                                    <div className="text-sm font-medium">{data.name}</div>
-                                                    <div className="text-sm">{formatCurrency(data.value)}</div>
+                                                    <div className="text-sm font-medium">{d.name}</div>
+                                                    <div className="text-sm">{formatCurrency(d.value as number)}</div>
                                                     <div className="text-xs text-muted-foreground">
-                                                        {data.count} giao dịch
+                                                        {(d.percentage as number).toFixed(1)}% tổng doanh thu
                                                     </div>
+                                                    {(d.count as number) > 0 && (
+                                                        <div className="text-xs text-muted-foreground">
+                                                            {d.count as number} giao dịch
+                                                        </div>
+                                                    )}
                                                 </div>
                                             );
                                         }
@@ -410,12 +416,10 @@ function formatProvider(provider: number): string {
     switch (provider) {
         case 0:
             return "Momo";
-        case 1:
-            return "Stripe";
         case 2:
-            return "Tiền mặt";
+            return "Thanh toán trực tiếp";
         default:
-            return String(provider);
+            return "Không xác định";
     }
 }
 

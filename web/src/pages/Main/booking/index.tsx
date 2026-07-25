@@ -1,4 +1,4 @@
-import { getApiTripsByTripId, postApiBookings, postApiPaymentsMomoCreate } from "@/api";
+import { getApiTripsByTripId, postApiBookings, postApiPaymentsMomoCreate, postApiPaymentsVnpayCreate } from "@/api";
 import type { PaymentProvider, TripDetailDto } from "@/api";
 import BookingAddressStep from "./components/BookingAddressStep";
 import BookingConfirmStep from "./components/BookingConfirmStep";
@@ -20,7 +20,7 @@ import { observer } from "mobx-react-lite";
 import { ArrowLeft, Building2, Wallet } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 
 const INITIAL_FORM: BookingFormState = {
@@ -36,6 +36,7 @@ const INITIAL_FORM: BookingFormState = {
 
 const MOMO_PAYMENT_PROVIDER = 0 as PaymentProvider;
 const CASH_PAYMENT_PROVIDER = 2 as PaymentProvider;
+const VNPAY_PAYMENT_PROVIDER = 3 as PaymentProvider;
 
 function readString(value: unknown) {
     return typeof value === "string" ? value : null;
@@ -90,6 +91,13 @@ const PageMainBooking = observer(() => {
                 title: t("payment_option_momo_title"),
                 description: t("payment_option_momo_desc"),
                 badge: t("payment_badge_recommended"),
+                Icon: Wallet,
+            },
+            {
+                value: VNPAY_PAYMENT_PROVIDER,
+                title: t("payment_option_vnpay_title"),
+                description: t("payment_option_vnpay_desc"),
+                badge: t("payment_badge_fast"),
                 Icon: Wallet,
             },
             {
@@ -397,6 +405,40 @@ const PageMainBooking = observer(() => {
 
                 if (redirectUrl) {
                     toast.success(t("payment_redirecting_momo"));
+                    window.location.assign(redirectUrl);
+                    return;
+                }
+
+                toast.success(t("payment_created_check_orders"));
+                navigate("/orders");
+                return;
+            }
+
+            if (form.paymentProvider === VNPAY_PAYMENT_PROVIDER) {
+                const vnpayResponse = await postApiPaymentsVnpayCreate({
+                    body: {
+                        bookingId,
+                    },
+                });
+
+                if (vnpayResponse.error || !vnpayResponse.data) {
+                    throw vnpayResponse.error ?? new Error(t("payment_submit_error"));
+                }
+
+                const redirectUrl = vnpayResponse.data.payUrl;
+
+                if (vnpayResponse.data.intentId) {
+                    savePendingMomoPayment({
+                        intentId: vnpayResponse.data.intentId,
+                        bookingId: vnpayResponse.data.bookingId ?? bookingId,
+                        orderId: vnpayResponse.data.orderId,
+                        tripId,
+                        createdAt: new Date().toISOString(),
+                    });
+                }
+
+                if (redirectUrl) {
+                    toast.success(t("payment_redirecting_vnpay"));
                     window.location.assign(redirectUrl);
                     return;
                 }

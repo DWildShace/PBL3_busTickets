@@ -26,7 +26,7 @@ namespace pbl3_server.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "notification_status", new[] { "sent", "failed" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "notification_type", new[] { "email", "sms", "push" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "payment_intent_status", new[] { "created", "succeeded", "failed" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "payment_provider", new[] { "momo", "stripe", "cash" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "payment_provider", new[] { "momo", "stripe", "cash", "vnpay" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "refund_status", new[] { "pending", "processed", "approved", "processing", "completed", "rejected", "failed" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "review_status", new[] { "pending", "approved", "rejected", "flagged" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "seat_hold_status", new[] { "held", "confirmed", "expired" });

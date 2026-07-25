@@ -218,9 +218,10 @@ export type CreateTripDto = {
     busTypeID?: string;
     departureDate?: string;
     departureDates?: Array<string> | null;
-    departureTime?: string;
-    arrivalTime?: string;
+    departureTime: string | null;
+    arrivalTime: string | null;
     status?: TripStatus;
+    basePrice?: number;
 };
 
 export type DistrictResponse = {
@@ -294,7 +295,7 @@ export type OAuthGoogleRequestDto = {
 
 export type PaymentIntentStatus = 0 | 1 | 2;
 
-export type PaymentProvider = 0 | 1 | 2;
+export type PaymentProvider = 0 | 1 | 2 | 3;
 
 export type ProblemDetails = {
     type?: string | null;
@@ -532,9 +533,10 @@ export type UpdateTripDto = {
     busID?: string | null;
     busTypeID?: string;
     departureDate?: string;
-    departureTime?: string;
-    arrivalTime?: string;
+    departureTime: string | null;
+    arrivalTime: string | null;
     status?: TripStatus;
+    basePrice?: number;
 };
 
 export type UserDto = {
@@ -544,6 +546,21 @@ export type UserDto = {
     phoneNumber: string | null;
     role: string | null;
     isActive?: boolean;
+};
+
+export type VnpayIpnRequestDto = {
+    vnp_Amount?: number;
+    vnp_BankCode?: string | null;
+    vnp_BankTranNo?: string | null;
+    vnp_CardType?: string | null;
+    vnp_OrderInfo?: string | null;
+    vnp_PayDate?: string | null;
+    vnp_ResponseCode?: string | null;
+    vnp_TmnCode?: string | null;
+    vnp_TransactionNo?: string | null;
+    vnp_TransactionStatus?: string | null;
+    vnp_TxnRef?: string | null;
+    vnp_SecureHash?: string | null;
 };
 
 export type WardResponse = {
@@ -2336,6 +2353,61 @@ export type GetApiUserMeOrdersData = {
 };
 
 export type GetApiUserMeOrdersResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type PostApiPaymentsVnpayCreateData = {
+    body?: CreateMomoPaymentRequestDto;
+    path?: never;
+    query?: never;
+    url: '/api/payments/vnpay/create';
+};
+
+export type PostApiPaymentsVnpayCreateResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type GetApiPaymentsVnpayIpnData = {
+    body?: never;
+    path?: never;
+    query?: {
+        vnp_Amount?: number;
+        vnp_BankCode?: string;
+        vnp_BankTranNo?: string;
+        vnp_CardType?: string;
+        vnp_OrderInfo?: string;
+        vnp_PayDate?: string;
+        vnp_ResponseCode?: string;
+        vnp_TmnCode?: string;
+        vnp_TransactionNo?: string;
+        vnp_TransactionStatus?: string;
+        vnp_TxnRef?: string;
+        vnp_SecureHash?: string;
+    };
+    url: '/api/payments/vnpay/ipn';
+};
+
+export type GetApiPaymentsVnpayIpnResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type PostApiPaymentsVnpayReturnVerifyData = {
+    body?: VnpayIpnRequestDto;
+    path?: never;
+    query?: never;
+    url: '/api/payments/vnpay/return/verify';
+};
+
+export type PostApiPaymentsVnpayReturnVerifyResponses = {
     /**
      * OK
      */

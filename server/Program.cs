@@ -32,6 +32,10 @@ namespace Pbl3
             builder.Services.AddControllers(options =>
             {
                 options.Filters.Add<GlobalExceptionFilter>();
+            })
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new Pbl3.Utils.LocalDateTimeJsonConverter());
             });
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddScoped<ITripSearchService, TripSearchService>();
@@ -60,7 +64,7 @@ namespace Pbl3
                     "FrontendDev",
                     policy =>
                         policy
-                            .WithOrigins("http://localhost:5173")
+                            .WithOrigins("http://localhost:5173","http://134.209.209.6")
                             .AllowAnyHeader()
                             .AllowAnyMethod()
                 );
@@ -103,6 +107,23 @@ namespace Pbl3
                     }
                 }
             );
+
+            builder
+                .Services.AddOptions<VnpayOptions>()
+                .Configure(options =>
+                {
+                    options.TmnCode =
+                        Environment.GetEnvironmentVariable("VNPAY_TMN_CODE") ?? string.Empty;
+                    options.HashSecret =
+                        Environment.GetEnvironmentVariable("VNPAY_HASH_SECRET") ?? string.Empty;
+                    options.BaseUrl =
+                        Environment.GetEnvironmentVariable("VNPAY_BASE_URL") ?? string.Empty;
+                    options.ReturnUrl =
+                        Environment.GetEnvironmentVariable("VNPAY_RETURN_URL") ?? string.Empty;
+                    options.IpnUrl =
+                        Environment.GetEnvironmentVariable("VNPAY_IPN_URL") ?? string.Empty;
+                });
+            builder.Services.AddScoped<IVnpayService, VnpayService>();
 
             var connectionString =
                 Environment.GetEnvironmentVariable("DATABASE_URL")
