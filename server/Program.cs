@@ -66,14 +66,19 @@ namespace Pbl3
                         policy
                             .WithOrigins(
                                 "http://localhost:5173",
+                                "https://localhost:5173",
                                 "http://localhost:3000",
+                                "https://localhost:3000",
                                 "http://134.209.209.6",
+                                "https://134.209.209.6",
                                 "http://134.209.209.6:5173",
                                 "http://134.209.209.6:80",
                                 "http://134.209.209.6.nip.io",
+                                "https://134.209.209.6.nip.io",
                                 "http://134.209.209.6.nip.io:5173",
                                 "http://134.209.209.6.nip.io:80"
                             )
+                            .SetIsOriginAllowed(_ => true)
                             .AllowAnyHeader()
                             .AllowAnyMethod()
                 );
