@@ -12,15 +12,16 @@ services:
     image: postgres:18
     container_name: postgres
     restart: unless-stopped
-    network_mode: host
     environment:
-      POSTGRES_USER: root
-      POSTGRES_DB: root
+      POSTGRES_USER: pbl3
+      POSTGRES_DB: pbl3
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "60011:5432"
     volumes:
       - pgdata:/var/lib/postgresql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U root -d root"]
+      test: ["CMD-SHELL", "pg_isready -U pbl3 -d pbl3"]
       interval: 5s
       timeout: 5s
       retries: 20
@@ -28,7 +29,8 @@ services:
 
 
   server:
-    image: ghcr.io/michioxd/pbl3-server:latest
+    build: ./server
+    image: ghcr.io/dwildshace/pbl3-server:latest
     restart: unless-stopped
     ports:
       - "60010:8080"
@@ -37,9 +39,10 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-  
+
   migrate:
-    image: ghcr.io/michioxd/pbl3-server:latest
+    build: ./server
+    image: ghcr.io/dwildshace/pbl3-server:latest
     profiles: [ "tools" ]
     depends_on:
       postgres:
@@ -49,7 +52,8 @@ services:
     command: [ "--migrate" ]
 
   seed:
-    image: ghcr.io/michioxd/pbl3-server:latest
+    build: ./server
+    image: ghcr.io/dwildshace/pbl3-server:latest
     profiles: [ "tools" ]
     depends_on:
       postgres:

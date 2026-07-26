@@ -64,7 +64,16 @@ namespace Pbl3
                     "FrontendDev",
                     policy =>
                         policy
-                            .WithOrigins("http://localhost:5173","http://134.209.209.6")
+                            .WithOrigins(
+                                "http://localhost:5173",
+                                "http://localhost:3000",
+                                "http://134.209.209.6",
+                                "http://134.209.209.6:5173",
+                                "http://134.209.209.6:80",
+                                "http://134.209.209.6.nip.io",
+                                "http://134.209.209.6.nip.io:5173",
+                                "http://134.209.209.6.nip.io:80"
+                            )
                             .AllowAnyHeader()
                             .AllowAnyMethod()
                 );
