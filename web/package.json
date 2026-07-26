@@ -5,7 +5,7 @@
     "type": "module",
     "scripts": {
         "dev": "bunx --bun vite",
-        "build": "bunx --bun tsc -b && bunx --bun vite build",
+        "build": "vite build",
         "lint": " bunx --bun eslint .",
         "preview": "bunx --bun vite preview",
         "generate-api": "bunx @hey-api/openapi-ts -i http://localhost:5026/swagger/v1/swagger.json -o ./src/api",
