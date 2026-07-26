@@ -20,7 +20,7 @@ import { observer } from "mobx-react-lite";
 import { ArrowLeft, Building2, Wallet } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
 const INITIAL_FORM: BookingFormState = {
@@ -425,13 +425,14 @@ const PageMainBooking = observer(() => {
                     throw vnpayResponse.error ?? new Error(t("payment_submit_error"));
                 }
 
-                const redirectUrl = vnpayResponse.data.payUrl;
+                const vnpayData = vnpayResponse.data as any;
+                const redirectUrl = vnpayData.payUrl;
 
-                if (vnpayResponse.data.intentId) {
+                if (vnpayData.intentId) {
                     savePendingMomoPayment({
-                        intentId: vnpayResponse.data.intentId,
-                        bookingId: vnpayResponse.data.bookingId ?? bookingId,
-                        orderId: vnpayResponse.data.orderId,
+                        intentId: vnpayData.intentId,
+                        bookingId: vnpayData.bookingId ?? bookingId,
+                        orderId: vnpayData.orderId,
                         tripId,
                         createdAt: new Date().toISOString(),
                     });

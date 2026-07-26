@@ -412,16 +412,6 @@ function SummaryCard({
     );
 }
 
-function formatProvider(provider: number): string {
-    switch (provider) {
-        case 0:
-            return "Momo";
-        case 2:
-            return "Thanh toán trực tiếp";
-        default:
-            return "Không xác định";
-    }
-}
 
 function formatCurrency(value: number) {
     return new Intl.NumberFormat("vi-VN", {
