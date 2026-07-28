@@ -89,16 +89,11 @@ namespace Pbl3.Services
             {
                 if (!string.IsNullOrEmpty(kvp.Value))
                 {
-                    signDataBuilder.Append(Uri.EscapeDataString(kvp.Key) + "=" + Uri.EscapeDataString(kvp.Value) + "&");
+                    signDataBuilder.Append(WebUtility.UrlEncode(kvp.Key) + "=" + WebUtility.UrlEncode(kvp.Value) + "&");
                 }
             }
 
-            var signData = signDataBuilder.ToString();
-            if (signData.EndsWith("&"))
-            {
-                signData = signData.Substring(0, signData.Length - 1);
-            }
-
+            var signData = signDataBuilder.ToString().TrimEnd('&');
             var secureHash = VnpaySignatureHelper.ComputeHmacSha512(_vnpayOptions.HashSecret, signData);
             var payUrl = $"{_vnpayOptions.BaseUrl}?{signData}&vnp_SecureHash={secureHash}";
 
@@ -207,14 +202,10 @@ namespace Pbl3.Services
             var signDataBuilder = new StringBuilder();
             foreach (var kvp in vnpParams)
             {
-                signDataBuilder.Append(Uri.EscapeDataString(kvp.Key) + "=" + Uri.EscapeDataString(kvp.Value) + "&");
+                signDataBuilder.Append(WebUtility.UrlEncode(kvp.Key) + "=" + WebUtility.UrlEncode(kvp.Value) + "&");
             }
 
-            var signData = signDataBuilder.ToString();
-            if (signData.EndsWith("&"))
-            {
-                signData = signData.Substring(0, signData.Length - 1);
-            }
+            var signData = signDataBuilder.ToString().TrimEnd('&');
 
             var expectedSignature = VnpaySignatureHelper.ComputeHmacSha512(_vnpayOptions.HashSecret, signData);
             if (!string.Equals(expectedSignature, request.vnp_SecureHash, StringComparison.OrdinalIgnoreCase))
