@@ -83,7 +83,23 @@ namespace Pbl3.Services
 
             if (passenger == null)
             {
-                throw new KeyNotFoundException("Không tìm thấy hồ sơ hành khách.");
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.UserID == userId);
+                passenger = new Passenger
+                {
+                    PassengerID = Guid.NewGuid(),
+                    UserID = userId,
+                    FullName = !string.IsNullOrWhiteSpace(request.ContactName)
+                        ? request.ContactName.Trim()
+                        : (user?.FullName ?? "Hành khách"),
+                    PhoneNumber = !string.IsNullOrWhiteSpace(request.ContactPhone)
+                        ? request.ContactPhone.Trim()
+                        : (user?.PhoneNumber ?? string.Empty),
+                    Email = !string.IsNullOrWhiteSpace(request.ContactEmail)
+                        ? request.ContactEmail.Trim()
+                        : (user?.Email ?? string.Empty),
+                };
+                _context.Passengers.Add(passenger);
+                await _context.SaveChangesAsync();
             }
 
             var utcNow = DateTime.UtcNow;
