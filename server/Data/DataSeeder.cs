@@ -218,7 +218,7 @@ namespace Pbl3.Data
                 r.RoleName == UserRole.Passenger.ToString()
             );
             var passwordHasher = new PasswordHasher<User>();
-            const string defaultSeedPassword = "hashed_password_123";
+            const string defaultSeedPassword = "Password123!";
 
             var users = new List<User>
             {
