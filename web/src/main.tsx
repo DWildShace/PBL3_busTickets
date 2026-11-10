@@ -29,7 +29,7 @@ client.setConfig({
 });
 
 createRoot(document.getElementById("root")!).render(
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
         <ThemeProvider>
             <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID!}>
                 <DialogProvider>
