@@ -206,7 +206,11 @@ namespace Pbl3.Extensions
                         "http://134.209.209.6.nip.io",
                         "https://134.209.209.6.nip.io",
                         "http://134.209.209.6.nip.io:5173",
-                        "http://134.209.209.6.nip.io:80"
+                        "http://134.209.209.6.nip.io:80",
+                        "http://143.198.223.225",
+                        "https://143.198.223.225",
+                        "http://143.198.223.225.nip.io",
+                        "https://143.198.223.225.nip.io"
                     )
                     .SetIsOriginAllowed(_ => true)
                     .AllowAnyHeader()
